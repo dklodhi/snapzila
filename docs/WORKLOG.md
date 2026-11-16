@@ -30,6 +30,30 @@ Each entry:
 
 ---
 
+## S06-fix — 2026-11-16 — Jurisdiction hierarchy + notifications page
+
+### Done
+- **DB migration** `20261116000007a` (schema) + `20261116000007b` (seed) applied:
+  - Added `parent_id` to `tags` table (self-referencing FK for hierarchy: state → district → city).
+  - Added `tag_kind` values: `central-govt`, `district`, `city`.
+  - Added `follow_target_type` values: `central-govt`, `district`, `city`.
+  - **Seeded 63 tags**: 1 central-govt + 36 states/UTs + 12 sectors + 14 orgs (SSC, UPSC, IBPS, etc.).
+- **Follow system now supports 9 target types**: event, institution, tag, sector, state, org, **central-govt**, **district**, **city**.
+  - Hierarchy: central-govt (top) → state → district → city (via tags.parent_id).
+  - Users can follow any level — e.g. follow "central-govt" for all central govt opportunities, or follow a specific state/district/city.
+- **`/me/notifications` page** — the NotificationBell linked here but the page didn't exist. Now built: full notifications list (50 most recent), kind badges (live-update/deadline/result/system), unread highlighting, mark-all-read button, link to source.
+- Split migration into 007a (schema: ALTER TYPE + ALTER TABLE) and 007b (seed inserts) because PostgreSQL doesn't allow using a newly-added enum value in the same transaction.
+
+### DB changes
+- `tags` table: +1 column (parent_id), +3 enum values in tag_kind.
+- `follow_target_type` enum: +3 values (central-govt, district, city).
+- 63 tag rows seeded.
+
+### Pushed
+- (this commit) — S6 fixes + notifications page + migration.
+
+---
+
 ## S06 — 2026-11-16 — User Features (Follow + Save + Notifications + Personalization)
 
 ### Done
