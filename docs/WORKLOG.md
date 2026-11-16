@@ -30,6 +30,85 @@ Each entry:
 
 ---
 
+## S01 — 2026-11-16 — Auth & RBAC (Supabase Auth + team_members)
+
+### Done
+- **S0 foundation (completed in this session)**: set up the Next.js 16 app in the existing repo.
+  - `package.json`, `next.config.ts`, `tsconfig.json` (strict mode), `postcss.config.mjs`, `eslint.config.mjs`.
+  - Tailwind CSS 4 via `@tailwindcss/postcss` + `@import "tailwindcss"` in `globals.css`.
+  - Design tokens from `DESIGN_SYSTEM.md` applied as CSS variables in `@theme` block (brand `#4F46E5`, accent `#F97316`, full status + neutral scale).
+  - Fonts loaded via `next/font`: Plus Jakarta Sans (display), Inter (body).
+  - Base shadcn/ui components: `button` (with `asChild` via Radix Slot), `input`, `label`, `card`.
+  - `lib/utils/cn.ts` (class merge), `lib/utils/log.ts` (thin logging wrapper — no `console.error` in committed code).
+- **Supabase clients** (`lib/supabase/`):
+  - `client.ts` — browser client via `createBrowserClient`.
+  - `server.ts` — server client via `createServerClient` + `next/headers` cookies.
+  - `middleware.ts` — `updateSession()` helper for the proxy.
+- **DB migration** `supabase/migrations/20261116000001_team_members.sql`:
+  - `team_members` table: `id, user_id (→auth.users), email, role, status, invited_by, added_at, updated_at`.
+  - Enums: `team_role` (super_admin/admin/content_writer), `team_member_status` (active/invited/disabled).
+  - `updated_at` trigger.
+  - Helper functions: `is_team_member(min_role)`, `has_min_role(required)` (role hierarchy).
+  - 6 RLS policies: self read, team read all, super_admin insert/delete/update, self update.
+- **Migration applied** to Supabase (`mrnzidzwbomrntijrzrj`) via `psycopg2` through the IPv4 connection pooler (`aws-0-ap-south-1.pooler.supabase.com`). Direct host is IPv6-only in this region.
+- **super_admin user bootstrapped** via Supabase Auth Admin API: `admin@snapzila.com` (email confirmed, linked to `team_members` with role=super_admin, status=active).
+- **Auth pages**:
+  - `/login` — consumer login (email+password, Suspense-wrapped `useSearchParams`).
+  - `/signup` — consumer signup (full name, email, password ≥8 chars).
+  - `/logout` — signs out + redirects home.
+  - `/console/login` — separate team login (dark theme, ShieldCheck icon, checks `team_members` on success, signs out non-team users with error).
+- **Protected pages**:
+  - `/me` — consumer dashboard (calls `requireUser()`, shows saved/following/notifications placeholders + account info).
+  - `/console` — team dashboard (calls `requireTeamMember()`, shows role badge + tool module placeholders for S2–S5).
+- **Route guards** (`src/proxy.ts` — Next.js 16 renamed `middleware.ts` → `proxy.ts`):
+  - Refreshes Supabase session on every request.
+  - `/console/*` (except `/console/login`) → redirect to `/console/login` if no session.
+  - `/me` → redirect to `/login` if no session.
+  - Skips `/api/*`, `/_next/*`, static files, public auth routes.
+- **Server helpers** (`lib/auth/server.ts`): `getCurrentUser()`, `getTeamMember()`, `requireUser()`, `requireTeamMember()`, `requireRole(min)`.
+- **Client hooks** (`lib/auth/`): `useCurrentUser()`, `useTeamMember()` — subscribe to Supabase auth state changes.
+- **RLS test** (`tests/test_team_members_rls.py`): creates a temp consumer user, asserts consumer CANNOT read/insert team_members, asserts super_admin CAN read, cleans up. All 4 tests pass.
+- **Build**: `npm run build` passes clean. 9 routes compiled (ƒ dynamic: `/`, `/console`, `/me`; ○ static: `/login`, `/signup`, `/logout`, `/console/login`, `/_not-found`).
+
+### DB changes
+- Migration `20261116000001_team_members.sql` applied to Supabase `mrnzidzwbomrntijrzrj`.
+- Table `public.team_members` created (8 columns, 6 RLS policies, 3 helper functions).
+- `auth.users` row created for `admin@snapzila.com`.
+- `team_members` row inserted: role=super_admin, status=active.
+
+### Pushed
+- `f448be8` — s0 worklog push confirmation (already on main from previous session).
+- (this commit) — s0-foundation + s1 auth code, DB migration, RLS test, worklog update.
+
+### Broke / Fixed
+- Next.js 16 deprecation: `middleware.ts` → `proxy.ts`. Renamed file + exported `proxy()` instead of `middleware()`.
+- TypeScript strict mode caught implicit `any` in `@supabase/ssr` cookie callbacks (`setAll(cookiesToSet)`). Fixed with explicit `CookieEntry[]` type annotation.
+- `useSearchParams` in client components must be wrapped in `<Suspense>` for static generation. Wrapped `LoginForm` and `ConsoleLoginForm` in Suspense.
+- Supabase direct connection host (`db.<ref>.supabase.co`) is IPv6-only in the South Asia (Mumbai) region. The sandbox has no IPv6 routing. Fixed by using the connection pooler (`aws-0-ap-south-1.pooler.supabase.com`) with user `postgres.<ref>`.
+- Supabase Auth Admin API requires the service_role key in BOTH the `apikey` header AND the `Authorization: Bearer` header. Initial RLS test only passed it as `apikey` → 401. Fixed.
+- Removed hardcoded `Admin@123` from the RLS test file (would be public in the repo). Test now reads `SNAPZILA_ADMIN_PASSWORD` env var.
+
+### Deferred (decided this session)
+- Team member invite flow (email-based invitation with `status='invited'`) — deferred to S2 when the console team management page is built.
+- OAuth providers (Google, GitHub) — deferred to Phase 2. Phase 1 is email+password only.
+- Email confirmation for consumer signup — currently OFF for dev; will enable in S8 before soft launch.
+- Password reset flow — deferred to S2 or S8.
+
+### Next session plan (S2)
+- Console Core: create `events`, `event_updates`, `event_guides`, `event_dates`, `event_documents`, `tags`, `static_pages`, `site_settings`, `audit_logs` tables.
+- Build the post editor (Manual + JSON paste with samples).
+- Build the post list view with filters + bulk actions.
+- Static pages editor + site settings editor.
+- Audit log viewer.
+
+### Notes for the founder
+- **Login credentials**: `admin@snapzila.com` / password from `ID Pass.txt`. **Change this password after first login** (the password is the same as the old project — anyone who saw the old credentials file knows it).
+- The app builds and runs locally with `npm run dev`. Set `.env.local` (gitignored) with the three Supabase env vars from `.env.example`.
+- To run the RLS test: `SNAPZILA_ADMIN_PASSWORD=<password> python3 tests/test_team_members_rls.py`.
+- The proxy file is `src/proxy.ts` (not `middleware.ts`) — Next.js 16 renamed the convention.
+
+---
+
 ## S00 — 2026-11-16 — Foundation & Planning (revised after old-repo code analysis)
 
 ### Done

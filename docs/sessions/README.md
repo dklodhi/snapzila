@@ -2,8 +2,8 @@
 
 Per-session notes (one file per session, written at the end of that session).
 
-- `S00.md` — Foundation & Planning (committed during S0)
-- `S01.md` — Auth & RBAC (to be written)
+- `S00.md` — Foundation & Planning
+- `S01.md` — Auth & RBAC (Supabase Auth + team_members + RLS tested)
 - `S02.md` — Console Core (to be written)
 - `S03.md` — Public Opportunities (to be written)
 - `S04.md` — Institutions (to be written)

@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+/* ============================================================
+   SnapZila Design Tokens (from docs/DESIGN_SYSTEM.md)
+   ============================================================ */
+@theme {
+  /* Brand */
+  --color-brand: #4f46e5;
+  --color-brand-hover: #4338ca;
+  --color-brand-subtle: #eef2ff;
+  --color-brand-accent: #f97316;
+  --color-brand-accent-hover: #ea580c;
+
+  /* Status */
+  --color-success: #10b981;
+  --color-success-subtle: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-warning-subtle: #fffbeb;
+  --color-danger: #f43f5e;
+  --color-danger-subtle: #fff1f2;
+  --color-info: #0ea5e9;
+
+  /* Neutrals (Slate) */
+  --color-ink: #0f172a;
+  --color-ink-soft: #1e293b;
+  --color-muted: #64748b;
+  --color-muted-soft: #94a3b8;
+  --color-line: #e2e8f0;
+  --color-line-soft: #f1f5f9;
+  --color-bg: #ffffff;
+  --color-bg-subtle: #f8fafc;
+  --color-bg-muted: #f1f5f9;
+
+  /* Fonts */
+  --font-sans: var(--font-body), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-display), system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+}
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: var(--color-ink);
+    line-height: 1.25;
+    font-weight: 600;
+  }
+
+  a {
+    color: var(--color-brand);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-brand-hover);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+/* ============================================================
+   Utility helpers
+   ============================================================ */
+@layer utilities {
+  .container-app {
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: 16px;
+  }
+
+  @media (min-width: 768px) {
+    .container-app {
+      padding-inline: 24px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container-app {
+      padding-inline: 32px;
+    }
+  }
+}
