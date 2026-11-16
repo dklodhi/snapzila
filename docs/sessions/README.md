@@ -9,7 +9,7 @@ Per-session notes (one file per session, written at the end of that session).
 - `S04.md` — Institutions (submit-only + console moderation)
 - `S05.md` — Helpline + Tools (Exam Calendar + Employment News)
 - `S06.md` — User Features (Follow + Save + Notifications + Personalization)
-- `S07.md` — i18n + SEO + Polish (to be written)
+- `S07.md` — i18n + SEO + Polish
 - `S08.md` — Soft Launch Prep (to be written)
 
 The running summary lives in `../WORKLOG.md`.

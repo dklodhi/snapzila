@@ -1,34 +1,16 @@
 /**
- * SnapZila — Proxy (Next.js 16 renamed from "middleware")
- * ============================================================================
- * Responsibilities:
- *   1. Refresh the Supabase auth session on every request (writes cookies).
- *   2. Protect /console/* routes — redirect to /console/login if no session.
- *      (The actual team_members check happens in the server component via
- *       requireTeamMember() — too expensive for proxy to do on every
- *       request, and the redirect from there is fast.)
- *   3. Protect /me — redirect to /login if no session.
- *
- * NOT changed by proxy:
- *   - /api/* (API routes handle auth themselves)
- *   - /_next/* (static assets)
- *   - /login, /signup, /logout, /console/login (public auth pages)
- *   - Static files (favicon.ico, robots.txt, etc.)
- *
- * Phase 1: no i18n locale routing yet (that's Session 7).
- * ============================================================================
+ * SnapZila — Proxy (Next.js 16, renamed from middleware)
+ * Combines next-intl locale routing + Supabase session refresh + route guards.
  */
 import { type NextRequest, NextResponse } from "next/server";
+import createMiddleware from "next-intl/middleware";
 import { updateSession } from "@/lib/supabase/middleware";
+import { routing } from "@/i18n/routing";
 
-// Routes that require a session (any authed user)
+const intlMiddleware = createMiddleware(routing);
+
 const USER_PROTECTED = ["/me", "/onboarding"];
-
-// Routes that require a team session (checked in server component,
-// but proxy at least verifies a session exists)
 const CONSOLE_PROTECTED = ["/console"];
-
-// Routes that are public even when logged in
 const PUBLIC_AUTH_ROUTES = ["/login", "/signup", "/logout", "/console/login"];
 
 function isMatch(pathname: string, prefixes: string[]): boolean {
@@ -38,24 +20,40 @@ function isMatch(pathname: string, prefixes: string[]): boolean {
 }
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
-  // 1. Refresh session (always — this is what keeps the user logged in)
-  const response = await updateSession(request);
-
-  // 2. Check if this is a protected route
   const pathname = request.nextUrl.pathname;
 
-  // Skip protection for public auth routes
+  // Skip i18n for console + API + static files
+  const skipIntl =
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/console") ||
+    pathname.startsWith("/admin");
+
+  // 1. Run next-intl for public routes (handles /hi-in/ prefix + root = en-IN)
+  if (!skipIntl) {
+    const intlResponse = intlMiddleware(request);
+    if (intlResponse) {
+      // 2. Refresh Supabase session (merge cookies with intl response)
+      const supabaseResponse = await updateSession(request);
+      // Copy supabase cookies onto intl response
+      for (const cookie of supabaseResponse.cookies.getAll()) {
+        intlResponse.cookies.set(cookie.name, cookie.value);
+      }
+      return intlResponse;
+    }
+  }
+
+  // 3. Refresh Supabase session for skipped routes
+  const response = await updateSession(request);
+
+  // 4. Route guards (check original pathname, not locale-prefixed)
   if (isMatch(pathname, PUBLIC_AUTH_ROUTES)) {
     return response;
   }
 
-  // Read the session from the refreshed cookies.
-  // We check for the presence of the auth cookie — the actual JWT
-  // validation happens in the server component via getUser().
   const authCookie = request.cookies.get("sb-access-token")?.value;
   const hasSession = Boolean(authCookie);
 
-  // 3. Protect /console/* — redirect to /console/login if no session
   if (isMatch(pathname, CONSOLE_PROTECTED)) {
     if (!hasSession) {
       const url = request.nextUrl.clone();
@@ -63,12 +61,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
     }
-    // Session exists — let the request through.
-    // The server component (requireTeamMember) will verify team membership.
     return response;
   }
 
-  // 4. Protect /me — redirect to /login if no session
   if (isMatch(pathname, USER_PROTECTED)) {
     if (!hasSession) {
       const url = request.nextUrl.clone();
@@ -76,7 +71,6 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
     }
-    return response;
   }
 
   return response;
@@ -84,12 +78,6 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths EXCEPT:
-     * - _next/static, _next/image (static files)
-     * - favicon.ico, robots.txt, sitemap.xml, etc.
-     * - api routes (they handle auth themselves)
-     */
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|og-image.png|icon.png|icon.svg|api).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|sitemap|og-image.png|icon.png|icon.svg|api).*)",
   ],
 };

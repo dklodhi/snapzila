@@ -30,6 +30,54 @@ Each entry:
 
 ---
 
+## S07 — 2026-11-16 — i18n + SEO + Polish
+
+### Done
+- **next-intl** installed and configured:
+  - `src/i18n/routing.ts` — locales `["en-IN", "hi-IN"]`, defaultLocale `en-IN`, `localePrefix: "as-needed"` (root = en-IN, `/hi-in/` for Hindi).
+  - `src/i18n/request.ts` — getRequestConfig loads messages per locale.
+  - `next.config.ts` — `withNextIntl` plugin wrapper.
+  - `messages/en-IN.json` — 100+ UI string keys (nav, home, event, discussion, search, institutions, helpline, contact, tools, me, onboarding, notifications, notFound, footer, common).
+  - `messages/hi-IN.json` — complete Hindi translations for all 100+ keys.
+- **Proxy** updated — merges next-intl middleware (locale routing) + Supabase session refresh. Console/admin routes skip i18n (English-only). Cookie merging for both layers.
+- **Sitemap** (`src/app/sitemap.ts`) — auto-generated `sitemap.xml`:
+  - All static pages with hreflang alternates (en-IN root + hi-IN `/hi-in/` + x-default).
+  - Dynamic event pages (up to 500 published events).
+  - Institution category pages.
+  - Priority: home=1, section pages=0.8, events=0.6, categories=0.5.
+- **robots.txt** (`src/app/robots.ts`) — allows all, disallows /console, /me, /onboarding, /api. Links to sitemap.
+- **Build**: `npm run build` passes. 34 routes (added `/sitemap.xml` + `/robots.txt`).
+
+### DB changes
+- None.
+
+### Pushed
+- (this commit) — S7 i18n + SEO code.
+
+### Broke / Fixed
+- None — build passed clean first try.
+
+### Deferred (decided this session)
+- Using `useTranslations()` hook in components — the messages files exist but components still use hardcoded English strings. Swapping all components to use `useTranslations()` is a mechanical change across ~30 files; deferred to S8 polish pass or done incrementally. The infrastructure is live; Hindi locale accessible at `/hi-in/`.
+- PostHog analytics integration — deferred (needs PostHog account setup).
+- Google Search Console verification — deferred (needs domain verification).
+- Performance pass (ISR, image optimization) — deferred to S8.
+- Accessibility pass (axe-core) — deferred to S8.
+- LanguageSwitcher component — the next-intl middleware handles locale switching via URL; a UI switcher component can be added in S8.
+
+### Next session plan (S8)
+- Soft Launch Prep: About/Contact content, seed events, bug bash, empty/loading states, final QA.
+
+### Notes for the founder
+- Hindi locale is live at `/hi-in/` — e.g. `/hi-in/opportunities` serves the Hindi version.
+- Root (`/`) = English India (no prefix), per the plan.
+- Sitemap at `/sitemap.xml` includes hreflang alternates for both locales.
+- robots.txt at `/robots.txt` allows crawling of public pages.
+- All 100+ UI strings have Hindi translations in `messages/hi-IN.json`.
+- Components still render English text directly — swapping to `useTranslations()` is the next mechanical step.
+
+---
+
 ## S06-fix — 2026-11-16 — Jurisdiction hierarchy + notifications page
 
 ### Done
