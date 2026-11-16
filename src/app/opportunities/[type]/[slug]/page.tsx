@@ -7,6 +7,8 @@ import { EventTimeline } from "@/components/public/event-timeline";
 import { EventGuide } from "@/components/public/event-guide";
 import { EventDates } from "@/components/public/event-dates";
 import { DiscussionSection } from "@/components/public/discussion-section";
+import { FollowButton } from "@/components/public/follow-button";
+import { SaveButton } from "@/components/public/save-button";
 
 const VALID_TYPES = ["govt-jobs", "admissions", "scholarships", "govt-schemes", "news", "articles"];
 
@@ -146,9 +148,47 @@ export default async function EventPage({
     });
   }
 
+  // Check if user is following / has saved this event
+  let initialFollowing = false;
+  let initialSaved = false;
+  if (user) {
+    const [{ data: followRow }, { data: saveRow }] = await Promise.all([
+      supabase
+        .from("user_follows")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("target_type", "event")
+        .eq("target_id", event.id)
+        .maybeSingle(),
+      supabase
+        .from("user_saves")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("target_type", "event")
+        .eq("target_id", event.id)
+        .maybeSingle(),
+    ]);
+    initialFollowing = Boolean(followRow);
+    initialSaved = Boolean(saveRow);
+  }
+
   return (
     <PublicShell>
       <div className="container-app py-6">
+        {/* Follow / Save bar */}
+        <div className="mb-4 flex items-center justify-end gap-2">
+          <FollowButton
+            targetType="event"
+            targetId={event.id}
+            initialFollowing={initialFollowing}
+          />
+          <SaveButton
+            targetType="event"
+            targetId={event.id}
+            initialSaved={initialSaved}
+          />
+        </div>
+
         {/* Desktop: 2-col (content | timeline rail) */}
         <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
           {/* Left: parent post + guide + dates */}

@@ -30,6 +30,73 @@ Each entry:
 
 ---
 
+## S06 — 2026-11-16 — User Features (Follow + Save + Notifications + Personalization)
+
+### Done
+- **DB migration** `20261116000006_user_features.sql` applied:
+  - `user_profiles` (12 cols): full_name, avatar_url, target_group (student/job-seeker/learner/other), state, exam_interests[], content_interests[], preferred_locale, onboarded_at.
+  - `user_follows` (5 cols): polymorphic follow with target_type enum = **event/institution/tag/sector/state/org**. Unique per (user, target_type, target_id). Public read (for follower counts), owner insert/delete.
+  - `user_saves` (5 cols): same polymorphic structure as follows. Owner-only read.
+  - `user_notifications` (13 cols): kind (live-update/deadline/result/system), title, body, link, target_type, target_id, priority, read_at, seen_at, archived_at. Owner read/update.
+  - **Fan-out trigger**: `notify_event_followers()` — AFTER INSERT on `event_updates`, creates a `user_notifications` row for every user following that event. Security definer, runs as system. This is the "follow event → get notified on live update" mechanism.
+  - 3 enums: follow_target_type (6 values), notification_kind (4), target_group (4).
+- **Server actions** (`src/lib/user/actions.ts`):
+  - `toggleFollow(targetType, targetId)` — optimistic, unique constraint handles duplicates.
+  - `toggleSave(targetType, targetId)` — same pattern.
+  - `markNotificationRead(id)`, `markAllNotificationsRead()`.
+  - `saveProfile(formData)` — upserts user_profiles with onboarding data.
+- **Components**:
+  - `FollowButton` — client, optimistic UI, shows Follow/Following state, redirects to login if not authed. Supports all 6 target types (event, institution, tag, sector, state, org).
+  - `SaveButton` — client, bookmark icon, optimistic toggle, fill state when saved.
+  - `NotificationBell` — client, dropdown with unread badge count, realtime subscription on `user_notifications` INSERT (new notifications push live), mark-all-read action, links to notifications list.
+- **Pages**:
+  - `/onboarding` — personalization form: full name, target group (student/job-seeker/learner/other), state (dropdown of all Indian states/UTs), exam interests (comma-separated), content interests (checkbox grid of 6 content types). Upserts to user_profiles.
+  - `/me` — dashboard rewritten with:
+    - Onboarding prompt banner if not onboarded.
+    - Stats cards: Saved count, Following count, Unread notifications, Profile status.
+    - Saved events list (fetches events by saved target_ids).
+    - Following section: followed events + counts per other target types (institutions, tags, sectors, states, orgs).
+    - Recent notifications list (last 10, with unread highlighting).
+    - NotificationBell in header (realtime).
+  - `/me/profile` — edit profile form (same fields as onboarding, prefilled).
+- **Event page** (`/opportunities/[type]/[slug]`) — Follow + Save buttons added above the parent post. Server-side checks if current user follows/has saved the event, passes initial state to client components.
+- **Proxy** — `/onboarding` added to USER_PROTECTED routes (redirects to login if not authed).
+- **Build**: `npm run build` passes. 31 routes.
+
+### DB changes
+- 4 tables, 3 enums, 1 trigger function, ~16 RLS policies.
+- Total tables: 22.
+
+### Pushed
+- (this commit) — S6 user features code + migration + worklog.
+
+### Broke / Fixed
+- No build errors in this session.
+
+### Deferred (decided this session)
+- Follow buttons on institution pages — the infrastructure works (target_type='institution'), but the institution listing cards don't have follow buttons yet. Defer to when institution detail pages are built (Phase 2+).
+- Follow buttons for tags (sector/state/org) on tag listing pages — no tag listing pages exist yet. The tags table exists but has no public listing UI.
+- Personalized home feed based on content_interests — home page still shows latest events. Personalization can be added in S7 or S8.
+- Notification settings (per-channel prefs) — deferred.
+- Email/push notifications — Phase 2.
+
+### Next session plan (S7)
+- i18n: Hindi mirror (`/hi-in/`), next-intl, locale-aware formatting.
+- SEO: sitemap, hreflang, meta tags, robots.txt.
+- PostHog analytics.
+- Performance pass (ISR, image optimization).
+- Accessibility pass.
+
+### Notes for the founder
+- Follow system supports 6 target types: **event, institution, tag, sector, state, org** — matching the old project's polymorphic follow, but simplified to a single table + enum.
+- Follow an event → get an in-app notification whenever a new live update is posted to that event (automatic via DB trigger).
+- NotificationBell in the `/me` header shows unread count + live-pushes new notifications via Supabase Realtime.
+- Onboarding flow at `/onboarding` — prompt users to set their target group, state, exam interests, content interests.
+- Profile editable at `/me/profile`.
+- Save (bookmark) any event — appears in the Saved section of `/me`.
+
+---
+
 ## S05 — 2026-11-16 — Helpline + Tools (Exam Calendar + Employment News)
 
 ### Done

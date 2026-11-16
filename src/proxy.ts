@@ -22,7 +22,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 // Routes that require a session (any authed user)
-const USER_PROTECTED = ["/me"];
+const USER_PROTECTED = ["/me", "/onboarding"];
 
 // Routes that require a team session (checked in server component,
 // but proxy at least verifies a session exists)
