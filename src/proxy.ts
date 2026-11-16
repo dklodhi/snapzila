@@ -22,28 +22,8 @@ function isMatch(pathname: string, prefixes: string[]): boolean {
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const pathname = request.nextUrl.pathname;
 
-  // Skip i18n for console + API + static files
-  const skipIntl =
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/console") ||
-    pathname.startsWith("/admin");
-
-  // 1. Run next-intl for public routes (handles /hi-in/ prefix + root = en-IN)
-  if (!skipIntl) {
-    const intlResponse = intlMiddleware(request);
-    if (intlResponse) {
-      // 2. Refresh Supabase session (merge cookies with intl response)
-      const supabaseResponse = await updateSession(request);
-      // Copy supabase cookies onto intl response
-      for (const cookie of supabaseResponse.cookies.getAll()) {
-        intlResponse.cookies.set(cookie.name, cookie.value);
-      }
-      return intlResponse;
-    }
-  }
-
-  // 3. Refresh Supabase session for skipped routes
+  // TEMPORARILY DISABLED: next-intl middleware (needs [locale] segment restructuring)
+  // 1. Refresh Supabase session for all routes
   const response = await updateSession(request);
 
   // 4. Route guards (check original pathname, not locale-prefixed)

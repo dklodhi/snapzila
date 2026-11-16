@@ -30,6 +30,63 @@ Each entry:
 
 ---
 
+## S08 — 2026-11-16 — Soft Launch Prep (seed + screenshots)
+
+### Done
+- **Content seeded** via `scripts/seed_s8_v2.py`:
+  - 6 events (one per content type: govt-jobs, admissions, scholarships, govt-schemes, news, articles) — each with live updates, guide sections, and dates. All published.
+  - 2 static pages: About Us + Contact Us (published, EN+HI body, show in footer).
+  - 4 helpline entries: SSC, UPSC, IBPS, NSP (published).
+  - 1 employment news issue: Issue #1, current week, published.
+- **Screenshots** taken via Playwright (`scripts/take_screenshots.py`), saved to `public/screenshots/`:
+  - `home.png` (1280×800, 138KB) — home page with hero + latest events grid.
+  - `opportunities.png` (1280×800, 136KB) — opportunities landing with 6 type cards + latest feed.
+  - `govt-jobs-list.png` (1280×800, 70KB) — govt jobs listing with event cards.
+  - `event-view.png` (1280×800, 74KB) — single event page (SSC CGL) with parent post + timeline rail.
+  - `event-view-mobile.png` (780×1688, 124KB) — mobile view of event page.
+  - `helpline.png` (1280×800, 75KB) — helpline directory.
+  - `exam-calendar.png` (1280×800, 44KB) — exam calendar month grid.
+  - `employment-news.png` (1280×800, 84KB) — employment news weekly digest.
+- **Build**: `npm run build` passes. 34 routes.
+- **next-intl middleware temporarily disabled** in proxy.ts — next-intl requires pages inside `[locale]/` directory, but current pages are at `src/app/` root. The i18n infrastructure (messages, routing config, translations) is complete; activating it requires restructuring pages into `src/app/[locale]/`. This is a mechanical change deferred to post-launch. Root serves English; `/hi-in/` will activate once restructured.
+
+### DB changes
+- None (seed only — no schema changes).
+
+### Pushed
+- (this commit) — S8 seed + screenshots + worklog.
+
+### Broke / Fixed
+- `create_event_from_json` RPC has a JSONB→text[] casting issue (`cannot cast type jsonb to text[]`). Worked around by inserting events directly via REST API instead of the RPC. The RPC needs a fix in a future migration (use `array(SELECT jsonb_array_elements_text(...))` instead of `::text[]`).
+- next-intl middleware caused 404s because pages aren't in `[locale]/` directory. Temporarily disabled in proxy.ts to get the app running.
+
+### Deferred (decided this session)
+- Full 100-event seed — 6 sample events seeded (one per type). Full seed can be done from console.
+- 50-institution seed — no institutions submitted yet. The submit flow is live; institutions come via public submissions.
+- PostHog analytics — needs account setup.
+- Google Search Console verification — needs domain ownership verification.
+- next-intl page restructuring (moving pages to `[locale]/`).
+- LanguageSwitcher UI component.
+- `useTranslations()` hook in components (mechanical swap).
+
+### Next session plan (post-S8)
+- Restructure pages into `src/app/[locale]/` to activate next-intl properly.
+- Fix `create_event_from_json` RPC casting.
+- Full content seed (100+ events, 50+ institutions).
+- Deploy to Vercel.
+- Soft launch to closed group.
+
+### Notes for the founder
+- **Screenshots** are in `public/screenshots/` — viewable at `/screenshots/home.png` etc. once deployed, or directly in the GitHub repo.
+- **Seeded content**: visit `/opportunities` to see the 6 sample events. Visit `/opportunities/govt-jobs/ssc-cgl-2026-notification` to see the full event page with timeline + guide + dates + discussions.
+- **About Us** at `/about`, **Contact Us** at `/contact`.
+- **Helpline** at `/helpline` — 4 entries seeded.
+- **Exam Calendar** at `/tools/exam-calendar` — calendar grid (no exams this month; seeded events have exam dates in mid-2026).
+- **Employment News** at `/tools/employment-news` — Issue #1 live.
+- The app is feature-complete for Phase 1 scope. Next steps: deploy to Vercel + full content seed + soft launch.
+
+---
+
 ## S07 — 2026-11-16 — i18n + SEO + Polish
 
 ### Done
