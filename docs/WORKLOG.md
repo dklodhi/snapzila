@@ -30,6 +30,56 @@ Each entry:
 
 ---
 
+## S05 — 2026-11-16 — Helpline + Tools (Exam Calendar + Employment News)
+
+### Done
+- **DB migration** `20261116000005_helpline_tools.sql` applied:
+  - `helpline_entries` (13 cols): title EN+HI, category, body_md EN+HI, phone, email, website, sort_order, status.
+  - `contact_messages` (10 cols): name, email, subject, body, category, user_id, ip_hash, status (new/read/replied/archived).
+  - `exam_calendar_overrides` (9 cols): exam_name EN+HI, date, category, url, notes, sort_order.
+  - `employment_news_issues` (13 cols): issue_number, week_start/end, title EN+HI, intro_md EN+HI, featured_event_ids[], status, published_at.
+  - 3 enums: helpline_status, contact_status, employment_news_status.
+  - RLS: helpline public read published + team CRUD; contact submitter read own + team read all + auth insert + team update; overrides public read + team write; employment_news public read published + team CRUD.
+- **Public pages**:
+  - `/helpline` — directory grouped by category, phone/email/website links per entry.
+  - `/contact` — contact form (name, email, category, subject, body) with success state. Auth required.
+  - `/tools/exam-calendar` — month grid view: pulls from published events with exam_date + exam_calendar_overrides. Month navigation (prev/next). Today highlighted. Up to 3 items per day cell + "N more". List view below with all exams that month.
+  - `/tools/employment-news` — weekly digest: latest issue with featured events (or auto-pulled govt-jobs from that week), previous issues list.
+- **Console pages**:
+  - `/console/helpline` — add form (title, category, status, phone, email, website, sort_order, body) + list with delete.
+  - `/console/tools/exam-calendar` — add override form + list with delete.
+  - `/console/tools/employment-news` — create issue form (auto-suggests next issue number + next week's Mon-Sun dates, featured event IDs, intro markdown, status) + issues list with delete.
+- **Server actions** (`src/lib/tools/actions.ts`): `submitContact`, `saveHelplineEntry`, `deleteHelplineEntry`, `saveExamOverride`, `deleteExamOverride`, `saveEmploymentNewsIssue`, `deleteEmploymentNewsIssue` — all with audit log.
+- **Build**: `npm run build` passes. 31 routes.
+
+### DB changes
+- 4 tables, 3 enums, ~16 RLS policies.
+- Total tables: 18.
+
+### Pushed
+- (this commit) — S5 helpline + tools code + migration + worklog.
+
+### Broke / Fixed
+- JSX parse error in exam-calendar: missing `}` after `.map()` callback — the closing `))` was on a separate line from `}`. Fixed by putting `))}` on the same line.
+
+### Deferred (decided this session)
+- Employment News auto-issue cron (scheduled Edge Function that creates a draft every Sunday) — defer to S8.
+- Contact messages console viewer — table exists + RLS, but no console list/view page yet. Team can query via SQL for now. Defer to later.
+- Exam calendar iCal export — defer.
+- Employment News PDF download — defer.
+
+### Next session plan (S6)
+- User Features: Follow, Save, Notifications (in-app bell), Personalization prefs, home feed.
+
+### Notes for the founder
+- Helpline directory live at `/helpline` — add entries from console.
+- Contact form live at `/contact` — submissions go to `contact_messages` table.
+- Exam Calendar live at `/tools/exam-calendar` — auto-pulls from events with exam_date + manual overrides from console.
+- Employment News live at `/tools/employment-news` — create weekly issues from console, auto-pulls govt-jobs if no featured IDs specified.
+- All four console management pages are in the sidebar under "Content" and "Tools" (though sidebar items for Helpline + Exam Calendar were previously marked "coming in S5" — they're now live).
+
+---
+
 ## S04 — 2026-11-16 — Institutions (submit-only + console moderation)
 
 ### Done
