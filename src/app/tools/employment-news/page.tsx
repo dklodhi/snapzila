@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PublicShell } from "@/components/public/public-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Newspaper } from "lucide-react";
+import { employmentNewsMetadata } from "@/lib/seo/metadata";
 
+
+export const metadata: Metadata = employmentNewsMetadata();
 export default async function EmploymentNewsPage() {
   const supabase = await createClient();
 

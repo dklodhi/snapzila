@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -5,7 +6,16 @@ import { PublicShell } from "@/components/public/public-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { GraduationCap, Globe, Clock } from "lucide-react";
 import { FollowButton } from "@/components/public/follow-button";
+import { examMetadata } from "@/lib/seo/metadata";
 
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const { data: exam } = await supabase.from("exams").select("name, slug, description, meta_description").eq("slug", slug).eq("status", "published").is("deleted_at", null).maybeSingle();
+  if (!exam) return {};
+  return examMetadata(exam);
+}
 const TYPE_LABELS: Record<string, string> = {
   entrance: "Entrance Exam", competitive: "Competitive Exam", certification: "Certification",
   recruitment: "Recruitment Exam", eligibility: "Eligibility Test", board: "Board Exam",

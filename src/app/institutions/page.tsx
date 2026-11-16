@@ -1,7 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicShell } from "@/components/public/public-shell";
 import { Card, CardContent } from "@/components/ui/card";
+import { institutionsMetadata } from "@/lib/seo/metadata";
 
+
+export const metadata: Metadata = institutionsMetadata();
 const CATEGORIES = [
   { slug: "exams", label: "Exams", desc: "Entrance and competitive exams" },
   { slug: "courses", label: "Courses", desc: "Undergraduate, postgraduate, diploma" },

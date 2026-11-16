@@ -1,6 +1,10 @@
+import type { Metadata } from "next";
 import { PublicShell } from "@/components/public/public-shell";
 import { ContactForm } from "./contact-form";
+import { contactMetadata } from "@/lib/seo/metadata";
 
+
+export const metadata: Metadata = contactMetadata();
 export default async function ContactPage({
   searchParams,
 }: {

@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PublicShell } from "@/components/public/public-shell";
 import { Card, CardContent } from "@/components/ui/card";
+import { institutionCategoryMetadata } from "@/lib/seo/metadata";
 
+
+export async function generateMetadata({ params }: { params: Promise<{ category: string }> }): Promise<Metadata> {
+  const { category } = await params;
+  const labels: Record<string, string> = { exams: "Exams", courses: "Courses", universities: "Universities", iits: "IITs", nits: "NITs", iims: "IIMs", aiims: "AIIMS", iiits: "IIITs", nifts: "NIFTs", schools: "Schools", colleges: "Colleges", coaching: "Coaching", "training-skill-centres": "Training & Skill Centres", iti: "ITI", "fake-universities": "Fake Universities", "law-universities": "Law Universities" };
+  return institutionCategoryMetadata(category, labels[category] ?? category);
+}
 const CATEGORY_LABELS: Record<string, string> = {
   exams: "Exams",
   courses: "Courses",

@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { PublicShell } from "@/components/public/public-shell";
 import { EventCard } from "@/components/public/event-card";
 import { Card, CardContent } from "@/components/ui/card";
+import { searchMetadata } from "@/lib/seo/metadata";
 
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ q?: string }> }): Promise<Metadata> {
+  const { q } = await searchParams;
+  return searchMetadata(q);
+}
 export default async function SearchPage({
   searchParams,
 }: {

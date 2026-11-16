@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PublicShell } from "@/components/public/public-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
+import { examCalendarMetadata } from "@/lib/seo/metadata";
 
+
+export const metadata: Metadata = examCalendarMetadata();
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",

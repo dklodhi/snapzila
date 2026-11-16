@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -7,12 +8,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EventTimeline } from "@/components/public/event-timeline";
 import { EventGuide } from "@/components/public/event-guide";
 import { FollowButton } from "@/components/public/follow-button";
+import { examSessionMetadata } from "@/lib/seo/metadata";
 
 function fmtDate(s?: string | null): string {
   if (!s) return "—";
   return new Date(s).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string; session: string }> }): Promise<Metadata> {
+  const { slug, session: sessionSlug } = await params;
+  const supabase = await createClient();
+  const { data: exam } = await supabase.from("exams").select("id, name, slug").eq("slug", slug).eq("status", "published").is("deleted_at", null).maybeSingle();
+  if (!exam) return {};
+  const { data: session } = await supabase.from("exam_sessions").select("session_label, slug").eq("exam_id", exam.id).eq("slug", sessionSlug).eq("status", "published").maybeSingle();
+  if (!session) return {};
+  return examSessionMetadata(exam, session);
+}
 export default async function ExamSessionPage({
   params,
 }: {

@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PublicShell } from "@/components/public/public-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Phone, Mail, Globe, LifeBuoy } from "lucide-react";
+import { helplineMetadata } from "@/lib/seo/metadata";
 
+
+export const metadata: Metadata = helplineMetadata();
 export default async function HelplinePage() {
   const supabase = await createClient();
   const { data: entries } = await supabase
