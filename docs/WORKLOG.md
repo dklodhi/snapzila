@@ -62,7 +62,9 @@ Each entry:
 - None (new Supabase project still empty — intentional).
 
 ### Pushed
-- (this commit) — all docs + README + .gitignore + revised analysis.
+- `e89fb2d` — s0: initial planning docs (12 files).
+- `9122a49` — s0-revise: deepened analysis after cloning old repo with founder-provided token.
+- Both commits pushed to `https://github.com/dklodhi/snapzila` on `main` (2026-11-16). Repo is public.
 
 ### Broke / Fixed
 - Initial planning round was done without code access (token redacted). Revised after founder provided token. The DB-schema-only analysis was directionally correct; the code analysis confirmed every finding and added concrete numbers (1,517 files, 72-field Event model, 30 lib subsystems, etc.).
