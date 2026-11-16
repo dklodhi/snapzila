@@ -31,10 +31,10 @@
   --color-bg-subtle: #f8fafc;
   --color-bg-muted: #f1f5f9;
 
-  /* Fonts */
-  --font-sans: var(--font-body), system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-display), system-ui, sans-serif;
-  --font-mono: var(--font-mono), ui-monospace, monospace;
+  /* Fonts — system stacks (swap to next/font on Vercel deploy) */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 }
 
 /* ============================================================

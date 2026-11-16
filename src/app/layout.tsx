@@ -1,20 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
-
-const display = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["600", "700"],
-  display: "swap",
-});
-
-const body = Inter({
-  subsets: ["latin"],
-  variable: "--font-body",
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "SnapZila — Live updates for career & education opportunities",
@@ -27,7 +12,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-IN" className={`${display.variable} ${body.variable}`}>
+    <html lang="en-IN">
       <body className="font-sans antialiased">{children}</body>
     </html>
   );

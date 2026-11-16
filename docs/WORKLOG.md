@@ -30,6 +30,81 @@ Each entry:
 
 ---
 
+## S03 — 2026-11-16 — Public Opportunities + Voice-Type Discussions
+
+### Plan modification (pre-S3)
+- Founder requested discussions be re-included in Phase 1 scope — NOT as a forum, but as voice-type based comments tied to events & institutions.
+- Updated `MASTER_PLAN.md` §3.5 (new Discussions section with 6 voice types), §4 (removed from OUT list), §8 (added tables 21+22), §10.5 (discussion layout + card design + voice badge colors + UX rules).
+- Updated `DB_SCHEMA.md` §8.5 (full column spec + RLS + vote trigger), §12 (S3 now creates 2 tables).
+- Updated `SESSION_PLAN.md` S3 (expanded with discussion tasks).
+- Updated `README.md` scope list.
+- Committed as `7234e78`.
+
+### Done
+- **DB migration** `20261116000003_discussions.sql` applied:
+  - `event_discussions` table: id, event_id, institution_id (FK deferred to S4), author_id, voice_type, body_md (max 2000), parent_id (one-level replies), upvote_count, reply_count, created_at, deleted_at.
+  - `discussion_votes` table: discussion_id, user_id, unique on (discussion_id, user_id).
+  - `voice_type` enum: aspirant, selected, mentor, official, skeptic, general.
+  - Vote count trigger: maintains `upvote_count` on vote insert/delete.
+  - Reply count trigger: maintains parent's `reply_count` on reply insert/delete.
+  - RLS: public read on published events, auth insert, author update/delete, team delete (moderation), votes public read + auth insert + self delete.
+- **Public shell**: `SiteHeader` (logo, nav, auth-aware buttons) + `SiteFooter` (3-column links) + `PublicShell` wrapper.
+- **Home page** (`/`): hero + type buttons + latest 9 events grid + auth status banner.
+- **Opportunities landing** (`/opportunities`): 6 type cards with counts + latest 12 events grid.
+- **Type listing** (`/opportunities/[type]`): filterable by type, up to 50 events, EventCard grid.
+- **EventCard** component: type badge (colored), featured pill, title, conducting body, summary, days-left-to-apply.
+- **Single event page** (`/opportunities/[type]/[slug]`):
+  - Desktop: 2-col grid (parent + guide + dates | sticky timeline rail).
+  - Mobile: single column (parent → timeline → guide → dates → discussions).
+  - `ParentPostPartial`: partial view (title, body, summary, key dates, apply link) + "View All" AJAX expand (URL hash `#details`) revealing full body, eligibility, fees, selection process, locations.
+  - `EventTimeline`: live updates with realtime subscription (`postgres_changes` INSERT filter), kind-colored dots (info/warning/result/admit-card/corrigendum/extension/deadline), "new" pulse animation, relative time formatting.
+  - `EventGuide`: accordion of guide sections sorted by section type then sort_order.
+  - `EventDates`: list of important dates with optional links.
+  - `DiscussionSection`: voice-type discussions — sort toggle (Top/Recent), comment cards with pseudonymous avatar (initials from author_id hash, color from hash), colored voice badges, upvote button (optimistic UI, one per user), one-level reply threads, post form (voice select + textarea), reply form (inline), "Login to join" prompt if not logged in.
+- **Discussion server actions** (`src/lib/public/discussion-actions.ts`): `postDiscussion`, `postReply`, `toggleUpvote` — all require auth via `requireUser()`.
+- **Search page** (`/search`): ILIKE search across title/conducting_body/summary, up to 20 results, EventCard grid.
+- **404 page**: on-brand, with home + opportunities links.
+- **Build**: `npm run build` passes clean. 21 routes compiled.
+
+### DB changes
+- Migration `20261116000003_discussions.sql` applied.
+- 2 new tables, 1 enum, 2 triggers, ~10 RLS policies.
+- Total tables: 12 (team_members + 9 content + 2 discussion).
+
+### Pushed
+- `7234e78` — plan modification (discussions re-included).
+- (this commit) — S3 code + migration + worklog.
+
+### Broke / Fixed
+- `next/font/google` (Plus Jakarta Sans + Inter) failed in Turbopack build — sandbox can't download fonts from Google at build time. Fixed by switching to system font stacks in CSS variables. Custom fonts will be added on Vercel deploy (which has internet).
+- `MessageReply` icon doesn't exist in lucide-react → `MessageSquareReply`.
+- `auth.users` FK join in Supabase select (`author:auth.users!fk_name(email)`) failed TypeScript parsing. Refactored to fetch `author_id` only and derive pseudonymous handle + avatar color from the UUID hash. This is actually better for privacy (no email exposure in public API).
+- TS strict `noUncheckedIndexedAccess`: array indexing (`colors[i]`, `VOICE_CONFIG[type]`, `KIND_CONFIG[kind]`) returns `T | undefined`. Added `?? fallback` + `if (!x) return null` guards.
+
+### Deferred (decided this session)
+- Documents upload + display (table exists, no upload UI yet) — defer to S4 or later.
+- Realtime for discussions (only live updates get realtime in Phase 1) — discussions refresh on page load.
+- Discussion edit window (15-min edit) — RLS allows update but no UI for editing yet.
+- Console discussion moderation page — team can soft-delete via SQL for now, proper UI later.
+- ISR/cache headers — all pages are dynamic (ƒ) for now. Performance pass in S7.
+- Custom fonts (Plus Jakarta Sans + Inter) — deferred to Vercel deploy.
+
+### Next session plan (S4)
+- Institutions: public submit form, console moderation queue, category listing pages.
+- Institution page with discussions (same DiscussionSection, tied to institution_id).
+- Add FK from event_discussions.institution_id to institutions.id.
+
+### Notes for the founder
+- The public site is live: home, opportunities landing, type listings, single event pages with timeline + guide + dates + discussions.
+- Realtime live updates work — open an event page in two tabs, add a live update from the console, see it appear in the other tab.
+- Discussions are voice-type based: pick your voice (aspirant/selected/mentor/official/skeptic/general), post, upvote, reply (one level).
+- Avatars are pseudonymous (derived from user UUID) — no email exposure publicly.
+- Search works at `/search?q=...`.
+- 404 page is on-brand.
+- Fonts are system stacks for now — will swap to Plus Jakarta Sans + Inter on Vercel deploy.
+
+---
+
 ## S02 — 2026-11-16 — Console Core (post management + JSON paste + audit log)
 
 ### Done

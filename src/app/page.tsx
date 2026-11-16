@@ -1,115 +1,100 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getTeamMember } from "@/lib/auth/server";
+import { PublicShell } from "@/components/public/public-shell";
+import { EventCard } from "@/components/public/event-card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+const TYPES = [
+  { slug: "govt-jobs", label: "Govt Jobs" },
+  { slug: "admissions", label: "Admissions" },
+  { slug: "scholarships", label: "Scholarships" },
+  { slug: "govt-schemes", label: "Govt Schemes" },
+  { slug: "news", label: "News" },
+  { slug: "articles", label: "Articles" },
+];
 
 export default async function HomePage() {
   const user = await getCurrentUser();
   const teamMember = await getTeamMember();
+  const supabase = await createClient();
+
+  const { data: latest } = await supabase
+    .from("events")
+    .select("id, type, slug, title, conducting_body, summary, apply_end_date, status, featured")
+    .eq("status", "published")
+    .is("deleted_at", null)
+    .order("published_at", { ascending: false })
+    .limit(9);
 
   return (
-    <main className="min-h-screen">
-      {/* Header */}
-      <header className="border-b border-line bg-bg-subtle">
-        <div className="container-app flex h-14 items-center justify-between">
-          <Link href="/" className="font-display text-lg font-bold text-brand">
-            SnapZila
-          </Link>
-          <nav className="flex items-center gap-2">
-            {user ? (
-              <>
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/me">My Dashboard</Link>
-                </Button>
-                {teamMember && (
-                  <Button asChild variant="secondary" size="sm">
-                    <Link href="/console">Console</Link>
-                  </Button>
-                )}
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/logout">Logout</Link>
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/signup">Sign Up</Link>
-                </Button>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
-
+    <PublicShell>
       {/* Hero */}
-      <section className="container-app py-16">
-        <div className="mx-auto max-w-3xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-brand-subtle px-3 py-1 text-xs font-medium text-brand">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-accent" />
-            Phase 1 — In Development
-          </div>
-          <h1 className="font-display text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+      <section className="border-b border-line bg-bg-subtle">
+        <div className="container-app py-12 text-center">
+          <h1 className="mx-auto max-w-3xl font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">
             Live updates for every career &amp; education opportunity
           </h1>
-          <p className="mt-4 text-lg text-muted">
-            Govt Jobs, Admissions, Scholarships, Govt Schemes, News, Articles —
-            each event with a real-time live-update timeline and structured
-            guide. One source of truth, updated live.
+          <p className="mx-auto mt-3 max-w-2xl text-muted">
+            Govt Jobs, Admissions, Scholarships, Govt Schemes, News, Articles — each event
+            with a real-time live-update timeline, structured guide, and discussions.
           </p>
-          <div className="mt-8 flex items-center justify-center gap-3">
-            {!user && (
-              <>
-                <Button asChild size="lg">
-                  <Link href="/signup">Get Started</Link>
-                </Button>
-                <Button asChild variant="secondary" size="lg">
-                  <Link href="/login">Login</Link>
-                </Button>
-              </>
-            )}
-            {user && (
-              <Button asChild size="lg">
-                <Link href="/me">Go to Dashboard</Link>
+          <div className="mt-6 flex items-center justify-center gap-2">
+            {TYPES.map((t) => (
+              <Button key={t.slug} asChild variant="secondary" size="sm">
+                <Link href={`/opportunities/${t.slug}`}>{t.label}</Link>
               </Button>
-            )}
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Status */}
+      {/* Latest opportunities */}
       <section className="container-app py-8">
-        <Card className="mx-auto max-w-2xl">
-          <CardHeader>
-            <CardTitle className="text-base">Session 1 — Auth &amp; RBAC</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted">
-            <p>
-              This is the Phase 1 rebuild. The planning docs are in{" "}
-              <code className="rounded bg-bg-muted px-1.5 py-0.5 text-xs">docs/</code>{" "}
-              in the repo.
-            </p>
-            <p>
-              Authentication is live. Consumer users can sign up and log in.
-              Team members can access the console at{" "}
-              <Link href="/console" className="text-brand underline">
-                /console
-              </Link>
-              .
-            </p>
-            {user && (
-              <p className="rounded-md bg-brand-subtle p-2 text-xs text-brand">
-                Logged in as: <strong>{user.email}</strong>
-                {teamMember && (
-                  <> · Team role: <strong>{teamMember.role}</strong></>
-                )}
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-xl font-semibold text-ink">Latest Opportunities</h2>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/opportunities">View All →</Link>
+          </Button>
+        </div>
+        {latest && latest.length > 0 ? (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {latest.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        ) : (
+          <Card className="mt-4">
+            <CardContent className="p-8 text-center text-muted">
+              No opportunities published yet.
+              {teamMember && (
+                <>
+                  {" "}You can{" "}
+                  <Link href="/console/posts/new-manual" className="text-brand hover:underline">
+                    create one from the console
+                  </Link>.
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </section>
-    </main>
+
+      {/* Status banner */}
+      {user && (
+        <section className="container-app pb-8">
+          <Card className="border-brand/20 bg-brand-subtle/30">
+            <CardContent className="p-4 text-sm">
+              <span className="text-brand">Signed in as {user.email}</span>
+              {teamMember && (
+                <span className="ml-2 text-muted">· Team: {teamMember.role.replace("_", " ")}</span>
+              )}
+              <Link href="/me" className="ml-3 text-brand hover:underline">Dashboard →</Link>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+    </PublicShell>
   );
 }
