@@ -11,11 +11,18 @@ import { Card } from "@/components/ui/card";
 import { Radio } from "lucide-react";
 
 const KIND_CONFIG: Record<string, { color: string; label: string }> = {
+  new: { color: "bg-brand", label: "New Notification" },
+  date_extend: { color: "bg-warning", label: "Date Extended" },
+  corrigendum: { color: "bg-danger", label: "Corrigendum" },
+  admit_card: { color: "bg-brand", label: "Admit Card" },
+  answer_key: { color: "bg-info", label: "Answer Key" },
+  result: { color: "bg-success", label: "Result" },
+  shortlist: { color: "bg-success", label: "Shortlist" },
+  other: { color: "bg-muted", label: "Other" },
+  // Legacy values (backward compat)
   info: { color: "bg-brand", label: "Info" },
   warning: { color: "bg-warning", label: "Warning" },
-  result: { color: "bg-success", label: "Result" },
   "admit-card": { color: "bg-brand", label: "Admit Card" },
-  corrigendum: { color: "bg-danger", label: "Corrigendum" },
   extension: { color: "bg-warning", label: "Extension" },
   deadline: { color: "bg-danger", label: "Deadline" },
 };

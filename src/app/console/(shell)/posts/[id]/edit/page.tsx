@@ -12,27 +12,11 @@ import {
   addDate,
   deleteDate,
 } from "@/lib/console/actions";
+import { UPDATE_TYPES, CORRIGENDUM_FIELDS, GUIDE_SECTIONS } from "@/lib/constants/editor";
 import { Trash2 } from "lucide-react";
 
-const UPDATE_KINDS = [
-  { value: "info", label: "Info" },
-  { value: "warning", label: "Warning" },
-  { value: "result", label: "Result" },
-  { value: "admit-card", label: "Admit Card" },
-  { value: "corrigendum", label: "Corrigendum" },
-  { value: "extension", label: "Extension" },
-  { value: "deadline", label: "Deadline" },
-];
-
-const GUIDE_SECTIONS = [
-  { value: "eligibility", label: "Eligibility" },
-  { value: "apply_steps", label: "Apply Steps" },
-  { value: "fees", label: "Fees" },
-  { value: "dates", label: "Dates" },
-  { value: "documents", label: "Documents" },
-  { value: "faq", label: "FAQ" },
-  { value: "other", label: "Other" },
-];
+// Use canonical constants from editor.ts (old project parity — 8 update types + 20 guide sections)
+const UPDATE_KINDS = UPDATE_TYPES;
 
 export default async function EditPostPage({
   params,
