@@ -429,6 +429,53 @@ Same shape as `user_follows`. Unique on `(user_id, target_type, target_id)`.
 
 Index: `(user_id, read_at NULLS FIRST, created_at DESC)`.
 
+### 8.5 Discussions (voice-type, tied to events & institutions)
+
+**`event_discussions`** — voice-type comments on events or institutions.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | uuid PK | |
+| event_id | uuid → events.id | nullable; one of event_id/institution_id must be set |
+| institution_id | uuid → institutions.id | nullable |
+| author_id | uuid → auth.users.id | |
+| voice_type | enum('aspirant','selected','mentor','official','skeptic','general') | default 'general' |
+| body_md | text | not null; max 2000 chars |
+| parent_id | uuid → event_discussions.id | nullable; one-level replies only |
+| upvote_count | integer | default 0; denormalized |
+| reply_count | integer | default 0; denormalized (only on parent comments) |
+| created_at | timestamptz | default now() |
+| updated_at | timestamptz | |
+| deleted_at | timestamptz | nullable (soft delete by team/author) |
+
+Indexes: `(event_id, created_at desc)` where deleted_at is null; `(institution_id, created_at desc)` where deleted_at is null; `(parent_id)` where parent_id is not null.
+
+RLS:
+- **Public read**: anyone can read discussions on published events/institutions where `deleted_at IS NULL`.
+- **Auth insert**: any logged-in user can post a discussion (one per event/institution context).
+- **Author update**: author can edit their own comment body within 15 minutes of posting (configurable). After that, edit disabled.
+- **Author delete**: author can soft-delete their own comment (sets `deleted_at`).
+- **Team delete**: any team member can soft-delete any comment (moderation).
+- **No hard delete** from client.
+
+**`discussion_votes`** — upvotes (one per user per comment).
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | uuid PK | |
+| discussion_id | uuid → event_discussions.id | ON DELETE CASCADE |
+| user_id | uuid → auth.users.id | |
+| created_at | timestamptz | default now() |
+
+Unique: `(discussion_id, user_id)`.
+
+RLS:
+- **Public read**: anyone can see vote counts.
+- **Auth insert**: any logged-in user can upvote (one per comment, enforced by unique constraint).
+- **Self delete**: user can remove their own upvote.
+
+**Vote count trigger**: on insert/delete in `discussion_votes`, increment/decrement `event_discussions.upvote_count` for the parent comment.
+
 ---
 
 ## 9. Audit
@@ -488,7 +535,7 @@ Both use the anon key (RLS applies); no service_role in client.
 | S0 | (none — Supabase client + project linking only) |
 | S1 | `team_members` |
 | S2 | `events`, `event_updates`, `event_guides`, `event_dates`, `event_documents`, `tags`, `static_pages`, `site_settings`, `audit_logs` |
-| S3 | (no new tables — reads S2 tables) |
+| S3 | `event_discussions`, `discussion_votes` |
 | S4 | `institutions`, `institution_submissions` |
 | S5 | `helpline_entries`, `contact_messages`, `exam_calendar_overrides`, `employment_news_issues` |
 | S6 | `user_profiles`, `user_follows`, `user_saves`, `user_notifications` |

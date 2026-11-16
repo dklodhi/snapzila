@@ -100,35 +100,46 @@ None.
 
 ---
 
-## Session 3 — Public Opportunities
+## Session 3 — Public Opportunities + Discussions
 
-**Goal**: public site lists events by type and shows the timeline + guide single-event view (per MASTER_PLAN.md §10). Realtime live updates working.
+**Goal**: public site lists events by type and shows the timeline + guide + discussions single-event view (per MASTER_PLAN.md §10). Realtime live updates working. Voice-type discussions on every event page.
 
 ### Tasks
-1. Build `/opportunities` landing (cards by type + latest feed).
-2. Build `/opportunities/[type]` listing pages (filterable: status implicit=open, sort by published_at / apply_end_date / featured).
-3. Build `<EventCard>` and `<EventListItem>` components.
-4. Build single event page `/opportunities/[type]/[slug]`:
+1. **Migration**: create `event_discussions` + `discussion_votes` tables with RLS + vote-count trigger.
+2. Build `/opportunities` landing (cards by type + latest feed).
+3. Build `/opportunities/[type]` listing pages (filterable: status implicit=open, sort by published_at / apply_end_date / featured).
+4. Build `<EventCard>` and `<EventListItem>` components.
+5. Build single event page `/opportunities/[type]/[slug]`:
    - `<ParentPostPartial>` with "View All" AJAX expand (URL hash `#details`).
-   - Mobile: single-column (parent partial → timeline → guide).
-   - Desktop: 2-col (parent + guide | sticky timeline rail).
+   - Mobile: single-column (parent partial → timeline → guide → discussions).
+   - Desktop: 2-col (parent + guide | sticky timeline rail), discussions full-width below.
    - `<EventTimeline>` + `<TimelineItem>` with kind-colored dots.
    - `<EventGuide>` (accordion mobile / tabs desktop).
+   - `<EventDates>` list.
    - Follow + Save buttons (UI only — wiring in S6).
-5. Wire Supabase Realtime subscription on `event_updates` for the current event — prepend new updates with slide-in animation.
-6. Build `/search?q=` page using `search_vector` tsvector.
-7. Build 404 / 500 pages.
-8. SEO: per-page meta tags, OG, canonical.
-9. Performance pass: ISR on listing pages (revalidate 60s), SSR/ISR on event pages, prefetch on hover.
+6. Wire Supabase Realtime subscription on `event_updates` for the current event — prepend new updates with slide-in animation.
+7. Build `<DiscussionSection>` component (per MASTER_PLAN.md §10.5):
+   - Sort toggle (Top / Recent).
+   - Comment cards: avatar (initials), voice badge (colored pill), body (markdown), timestamp, upvote button + count, reply button.
+   - One-level reply threads (indented, smaller).
+   - Post form (voice select + textarea + submit) — auth required; "Login to join" prompt if not logged in.
+   - Reply form (inline under parent).
+   - Upvote server action (optimistic UI, one per user per comment, unique constraint).
+   - Pagination: initial 20, "Load more".
+8. Build `/search?q=` page using `search_vector` tsvector.
+9. Build 404 / 500 pages.
+10. SEO: per-page meta tags, OG, canonical.
+11. Performance pass: ISR on listing pages (revalidate 60s), SSR/ISR on event pages, prefetch on hover.
 
 ### Deliverables
 - All 6 opportunity listing pages live.
-- Single event page with timeline + guide + realtime.
+- Single event page with timeline + guide + dates + discussions + realtime.
+- Voice-type discussions working (post, reply, upvote).
 - Search working.
 - 404/500 pages.
 
 ### Tables created
-None.
+`event_discussions`, `discussion_votes` (with vote-count trigger).
 
 ---
 

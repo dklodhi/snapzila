@@ -23,13 +23,14 @@ See [`docs/MASTER_PLAN.md`](docs/MASTER_PLAN.md) for the full plan, [`docs/OLD_P
 3. **Helpline**
 4. **Tools** — Exam Calendar, Employment News
 5. **Console** — Super Admin / Admin / Content Writers roles, manual + JSON-paste editor, JSON samples, About Us, Contact Us, Search/Analytics integration, WordPress-style post management
-6. **User services** — Login, SignUp, Notifications, Follow, Save, Personalization (root site for students/job-seekers; console for team only)
-7. **Languages** — English (India) at root, Hindi at `/hi-in/`
-8. **Design** — Modern, energetic, minimalistic, high information density
+6. **Discussions** — voice-type comments tied to events & institutions (NOT a forum — contextual, voice-tagged, upvoted, one-level replies)
+7. **User services** — Login, SignUp, Notifications, Follow, Save, Personalization (root site for students/job-seekers; console for team only)
+8. **Languages** — English (India) at root, Hindi at `/hi-in/`
+9. **Design** — Modern, energetic, minimalistic, high information density
 
 ## Out of scope for Phase 1
 
-Private jobs · HireZila platform · Nexus or any sub-platform · Crawler/AI extraction · API monetization · Telegram/WhatsApp bots · MOOC integration · Campus drives/TPO · Discussion forums · Career timelines · Resume builder · Certificates · Push notifications (in-app only) · Live chat · AI features · Languages beyond EN/HI.
+Private jobs · HireZila platform · Nexus or any sub-platform · Crawler/AI extraction · API monetization · Telegram/WhatsApp bots · MOOC integration · Campus drives/TPO · Full forum system (categories, threading, @mentions) · Career timelines · Resume builder · Certificates · Push notifications (in-app only) · Live chat · AI features · Languages beyond EN/HI.
 
 ---
 

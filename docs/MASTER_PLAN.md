@@ -114,7 +114,32 @@ For Phase 1, institutions are **submit-only** from the root site (any logged-in 
 1. **Exam Calendar** — a year-view calendar of upcoming exams (data sourced from `events` of type exam + their dates), filterable by month/category, exportable.
 2. **Employment News** — a curated weekly digest of govt job notifications, pulled from `events` of type `govt-jobs` published that week, with a downloadable PDF view.
 
-### 3.5 Console (company-internal)
+### 3.5 Discussions (voice-type, tied to events & institutions)
+
+A **lightweight social layer** on every event and institution page — NOT a forum. Users post short comments tied to a specific event/institution, picking a **voice type** that gives social context to who is speaking. No forum categories, no standalone discussion pages, no deep threading. Just contextual, voice-tagged comments with upvotes.
+
+**Voice types** (colored badge per comment):
+| Voice | Color | Meaning |
+| --- | --- | --- |
+| `aspirant` | Indigo | Preparing for this opportunity |
+| `selected` | Emerald | Cleared / was selected |
+| `mentor` | Amber | Offering guidance |
+| `official` | Orange | Official representative |
+| `skeptic` | Rose | Cautionary voice (e.g. "this looks like a scam") |
+| `general` | Slate | Default |
+
+**Rules**:
+- Discussions live **inline** on the event page (`/opportunities/[type]/[slug]#discussions`) and institution page — no separate `/discuss` routes.
+- One level of replies (no deep threading). Reply to a comment, but not to a reply.
+- Upvote (no downvote) — one per user per comment.
+- Sort by Top (most upvoted) or Recent.
+- Public can read; auth required to post / upvote.
+- Team can soft-delete any comment from console (moderation).
+- No @mentions, no hashtags, no rich formatting beyond basic markdown (bold, italic, links).
+
+**Why this not a forum**: forums need categories, moderation queues, thread splitting, pinned posts, community guidelines — all heavy. Voice-type discussions are contextual (tied to a specific event), ephemeral (sorted by relevance not chronology), and self-moderating (upvotes surface good content). The voice badge replaces the need for a profile system — you know the speaker's context without needing their full bio.
+
+### 3.6 Console (company-internal)
 
 The console is the team's WordPress-style back-office. Phase 1 console features:
 
@@ -133,7 +158,7 @@ The console is the team's WordPress-style back-office. Phase 1 console features:
 - **Audit log** — every console write recorded with actor, action, entity, before/after.
 - **Site settings** — brand, default language, feature flags.
 
-### 3.6 User Services (root site)
+### 3.7 User Services (root site)
 
 - **Login / SignUp** — email + password (Supabase Auth). Email magic-link optional later.
 - **Notifications** — in-app bell with read/unread, mark-all-read. (No push/email in Phase 1.)
@@ -141,13 +166,13 @@ The console is the team's WordPress-style back-office. Phase 1 console features:
 - **Save** — bookmark any Event/Institution to a personal saved list.
 - **Personalization** — on signup/onboarding, pick: target groups (student/job-seeker/learner), interests (content types), state, exam interests. Feeds the home feed + notifications filter.
 
-### 3.7 Languages & UI
+### 3.8 Languages & UI
 
 - **English (India)** at root — no `/en-in/` prefix.
 - **Hindi (India)** at `/hi-in/...` prefix.
 - Both languages fully supported for UI strings AND content (every Event/Institution/StaticPage stores `title`, `title_hi`, `body`, `body_hi`, etc. via a `content_multilang` JSONB column pattern — see schema).
 
-### 3.8 Design
+### 3.9 Design
 
 - Fresh **brand color** (decided below). Old brand color is NOT reused.
 - Modern, energetic, but minimalistic and high-density (not the airy, ad-heavy job-portal look).
@@ -172,7 +197,6 @@ Explicitly deferred. **Do not build, do not create tables for, do not add UI for
 | Email notifications | Nice-to-have, not launch-blocking | Phase 2 |
 | MOOC integration | Different business | Phase 3+ (or kill) |
 | Campus drives / TPO | B2B feature, needs institutional partnerships | Phase 3+ |
-| Discussion forums | Heavy moderation, community scaling issue | Phase 3+ |
 | Career timelines | Nice but not core | Phase 3+ |
 | Certificates | Not core | Phase 3+ |
 | Resume builder | Not core | Phase 3+ |
@@ -181,6 +205,8 @@ Explicitly deferred. **Do not build, do not create tables for, do not add UI for
 | Languages beyond EN + HI | Need EN+HI polished first | Phase 2 |
 | Multi-tenant org dashboards | Not core to consumer product | — |
 | Vault / document storage as a product | Use Supabase Storage simply | — |
+
+**Note on discussions**: the old project had a full `discuss_*` system (forums, threads, @mentions, reactions, entity tags). Phase 1 includes a **lightweight voice-type discussion** (§3.5 above) — contextual comments tied to events/institutions, not a forum. The full forum system remains out of scope.
 
 If during a session you feel tempted to add any of these, **stop and log it in `docs/WORKLOG.md` under "Deferred"**, do not implement.
 
@@ -385,6 +411,8 @@ Full DDL is in [`DB_SCHEMA.md`](DB_SCHEMA.md). Headline: **~20 tables instead of
 | 18 | `user_notifications` | In-app notifications | grows |
 | 19 | `audit_logs` | Console activity log | grows |
 | 20 | `site_settings` | Brand, default lang, feature flags (KV) | 1 row |
+| 21 | `event_discussions` | Voice-type comments on events/institutions | grows |
+| 22 | `discussion_votes` | Upvotes on discussion comments (one per user) | grows |
 
 **Supabase Auth** manages `auth.users` for both consumer and team logins. `team_members.email` matches `auth.users.email`; role checked at row level.
 
@@ -401,7 +429,7 @@ Detailed in [`SESSION_PLAN.md`](SESSION_PLAN.md). Summary:
 | **S0 — Foundation** | Repo, env, design tokens, empty Next.js app, Supabase client, base layout, brand applied | Pushed skeleton + this plan committed |
 | **S1 — Auth & RBAC** | Consumer auth (signup/login), console auth (separate route), `team_members` + RLS, role guards | Both logins working, roles enforced |
 | **S2 — Console Core** | Post editor (manual + JSON paste with samples), list view, publish/schedule, audit log, static pages | Console can manage all 6 opportunity types end-to-end |
-| **S3 — Public Opportunities** | Listing pages, single event view with timeline + guide + AJAX "View All", realtime subscription to live updates | Public site reads what console writes |
+| **S3 — Public Opportunities + Discussions** | Listing pages, single event view with timeline + guide + AJAX "View All" + realtime + voice-type discussions | Public site reads what console writes; social layer live |
 | **S4 — Institutions** | Public submit form, console moderation queue, category listing pages | Submit-only institutions flow live |
 | **S5 — Helpline + Tools** | Helpline page + contact form, Exam Calendar tool, Employment News weekly digest | Tools shipped |
 | **S6 — User Features** | Follow, Save, Notifications (in-app bell), Personalization prefs, home feed | Consumer account features live |
@@ -490,14 +518,44 @@ The live-updates rail on desktop is the signature element — it stays visible w
 - Rendered as accordion on mobile, sticky tabbed nav on desktop.
 - "Important Dates" section auto-populated from `event_dates` rows but can be manually overridden in the guide body.
 
-### 10.5 Anti-patterns to avoid
+### 10.5 Discussions (voice-type, social layer)
+
+- `event_discussions` rows: `id, event_id, institution_id, author_id, voice_type, body_md, parent_id, upvote_count, created_at, deleted_at`.
+- Rendered as a section below the guide (mobile) / below the two-column area (desktop), anchored at `#discussions`.
+- **Sort toggle**: Top (by `upvote_count` desc, then `created_at` desc) / Recent (`created_at` desc). Default: Top.
+- **Comment card layout**:
+  ```
+  ┌─────────────────────────────────────────────────┐
+  │ [avatar]  [voice badge]  · 2h ago               │
+  │           This is the comment body in markdown.  │
+  │           Can have **bold**, *italic*, [links].  │
+  │           ▲ 24   Reply                          │
+  │   ┌──── [reply card, indented, smaller] ────┐   │
+  │   │ [avatar] [voice] · 1h ago                │   │
+  │   │ Reply body...                            │   │
+  │   │ ▲ 5                                      │   │
+  │   └──────────────────────────────────────────┘   │
+  └─────────────────────────────────────────────────┘
+  ```
+- **Voice badge colors**: aspirant=indigo, selected=emerald, mentor=amber, official=orange, skeptic=rose, general=slate. Each badge is a small pill with the voice label.
+- **Avatar**: circle with user initials (no photo upload in Phase 1). Color derived from email hash for variety.
+- **Post form** (bottom of section): voice type `<select>` + `<textarea>` + Submit. If not logged in: "Login to join the discussion →" prompt.
+- **Reply form**: inline under parent comment, one level only (no reply-to-reply).
+- **Upvote**: `▲` button with count. One per user per comment. Optimistic UI (client increments immediately). Auth required — if not logged in, redirects to `/login?next=<current>`.
+- **Moderation**: team can soft-delete from console (sets `deleted_at`). Deleted comments show "[deleted]" placeholder, not removed (preserves reply context).
+- **Pagination**: initial 20 comments, "Load more" for additional. Replies load inline with parent (no separate pagination).
+- **No realtime** on discussions in Phase 1 (live updates get realtime; discussions are polling/refresh on new page load to keep it simple).
+
+### 10.6 Anti-patterns to avoid
 
 - NO full-width hero image on event pages (wastes vertical space).
 - NO ad slots in the timeline rail.
 - NO auto-play video.
 - NO "related jobs from HireZila" widgets (HireZila is out of scope).
 - NO social share drawer that covers content.
-- NO comment section (forums deferred).
+- NO deep-threaded comments (reply-to-reply-to-reply). One level only.
+- NO @mentions or hashtags in discussions.
+- NO comment media attachments (text + links only in Phase 1).
 
 ---
 
