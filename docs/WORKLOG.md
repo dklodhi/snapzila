@@ -30,6 +30,67 @@ Each entry:
 
 ---
 
+## S04 — 2026-11-16 — Institutions (submit-only + console moderation)
+
+### Done
+- **DB migration** `20261116000004_institutions.sql` applied:
+  - `institutions` table (25 cols): id, category (16-value enum), name, name_hi, slug, city, state, established_year, website, logo_url, description (EN+HI), contact_email/phone, status, published_at, featured, tags, meta_jsonb, search_vector, created_by, submission_id, timestamps, deleted_at.
+  - `institution_submissions` table (18 cols): id, category, name, city, state, website, description, submitter_name/email/phone, submitter_user_id, status (pending/approved/rejected/merged), review_notes, reviewed_by/at, resulting_institution_id, timestamps.
+  - 3 enums: `institution_category` (16 values), `institution_status` (4), `submission_status` (4).
+  - Cross-table FKs: institutions.submission_id → submissions.id; submissions.resulting_institution_id → institutions.id; event_discussions.institution_id → institutions.id (deferred from S3).
+  - `search_vector` trigger on institutions (name, name_hi, city, state, description).
+  - RLS: public reads published institutions; team reads/writes all; auth users can submit; submitter reads own submissions; team reviews.
+  - Public read policy for discussions on published institutions (deferred from S3).
+- **Public pages**:
+  - `/institutions` — landing with 16 category cards.
+  - `/institutions/[category]` — listing of published institutions in that category (sorted by name, up to 100).
+  - `/institutions/submit` — public submit form (requires login). Split into server page + client `SubmitForm` component (to avoid client-importing-server-component issue). Fields: category, name, city, state, website, description, submitter name/email/phone. Success state after submission.
+- **Console pages**:
+  - `/console/institutions` — moderation queue + published institutions list. Status filter tabs (All / Pending / Approved / Rejected). Two tables: submissions (pending review) + published institutions (editable).
+  - `/console/institutions/[id]` — dual-purpose review/edit page:
+    - If ID is a submission: shows submission details + publish form (editable fields: name, name_hi, city, state, website, contact_email, description) + reject form (with reason). Publish creates an institution + marks submission approved + links them.
+    - If ID is an institution: shows edit form (category, status, name EN+HI, slug, website, city, state, contact, description EN+HI).
+- **Server actions** (`src/lib/public/institution-actions.ts`):
+  - `submitInstitution` — public submit (requires auth user).
+  - `publishSubmission` — creates institution from submission + marks approved + audit log.
+  - `rejectSubmission` — marks rejected with reason + audit log.
+  - `saveInstitution` — updates existing institution + audit log.
+  - `deleteInstitution` — soft delete + audit log.
+- **Build**: `npm run build` passes. 26 routes.
+
+### DB changes
+- Migration `20261116000004_institutions.sql` applied.
+- 2 new tables, 3 enums, 1 trigger function, ~12 RLS policies, 3 cross-table FKs.
+- Total tables: 14.
+
+### Pushed
+- (this commit) — S4 institutions code + migration + worklog.
+
+### Broke / Fixed
+- Client component importing server component: `submit/page.tsx` was "use client" but imported `PublicShell` (which uses `next/headers` via `getCurrentUser`). Split into server page (`page.tsx`) + client form (`submit-form.tsx`). Server page wraps `<PublicShell>` and renders `<SubmitForm>` as a client child.
+- TS spread order: `{ submission_id: x, ...data }` flagged "specified more than once" because `data` also had `submission_id`. Fixed to `{ ...data, submission_id: x }`.
+
+### Deferred (decided this session)
+- Institution detail page (`/institutions/[category]/[slug]`) with discussions — the listing page links to institution cards but there's no single-institution page yet. Defer to when rich institution pages are needed (Phase 2+). The discussion infrastructure is ready (event_discussions works with institution_id, RLS is set up).
+- Institution logo upload — logo_url column exists but no upload UI.
+- "Merge to existing" flow for submissions that duplicate existing institutions.
+- Fake university checker tool — the category exists but no dedicated checker UI.
+
+### Next session plan (S5)
+- Helpline page + contact form.
+- Exam Calendar tool (month grid view from events with exam_date).
+- Employment News weekly digest.
+
+### Notes for the founder
+- Institutions flow is live: public submits → console reviews → publishes.
+- Login required to submit (any consumer account works).
+- Console moderation queue at `/console/institutions` shows pending submissions.
+- Review page at `/console/institutions/[id]` lets you publish (with editable fields) or reject (with reason).
+- Published institutions appear on `/institutions/[category]` listing pages.
+- 16 categories supported including fake-universities and law-universities.
+
+---
+
 ## S03 — 2026-11-16 — Public Opportunities + Voice-Type Discussions
 
 ### Plan modification (pre-S3)
