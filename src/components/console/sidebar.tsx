@@ -19,6 +19,7 @@ import {
   ScrollText,
   BarChart3,
   ShieldCheck,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -42,6 +43,8 @@ const NAV_GROUPS: { group: string; items: NavItem[] }[] = [
     group: "Content",
     items: [
       { label: "Institutions", href: "/console/institutions", icon: Building2, available: false, session: "S4" },
+      { label: "Exams", href: "/console/exams", icon: GraduationCap, available: true },
+      { label: "Courses", href: "/console/courses", icon: FileCode2, available: true },
       { label: "Helpline", href: "/console/helpline", icon: LifeBuoy, available: false, session: "S5" },
       { label: "Exam Calendar", href: "/console/tools/exam-calendar", icon: Calendar, available: false, session: "S5" },
       { label: "Static Pages", href: "/console/pages", icon: FileCode2, available: true },

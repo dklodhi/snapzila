@@ -29,22 +29,35 @@ interface UpdateData {
   published_at: string;
 }
 
-export function EventTimeline({ eventId, initialUpdates }: { eventId: string; initialUpdates: UpdateData[] }) {
+export function EventTimeline({
+  eventId,
+  examSessionId,
+  initialUpdates,
+}: {
+  eventId: string;
+  examSessionId?: string;
+  initialUpdates: UpdateData[];
+}) {
   const [updates, setUpdates] = useState<UpdateData[]>(initialUpdates);
   const [newPulse, setNewPulse] = useState(false);
 
   useEffect(() => {
+    // Only subscribe to realtime if we have a valid ID
+    const subscribeId = examSessionId || eventId;
+    if (!subscribeId) return;
+
     const supabase = createClient();
+    const filterColumn = examSessionId ? "exam_session_id" : "event_id";
 
     const channel = supabase
-      .channel(`event-updates-${eventId}`)
+      .channel(`updates-${subscribeId}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "event_updates",
-          filter: `event_id=eq.${eventId}`,
+          filter: `${filterColumn}=eq.${subscribeId}`,
         },
         (payload) => {
           const newUpdate = payload.new as UpdateData;
@@ -58,7 +71,7 @@ export function EventTimeline({ eventId, initialUpdates }: { eventId: string; in
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [eventId]);
+  }, [eventId, examSessionId]);
 
   function fmtTime(s: string): string {
     const d = new Date(s);

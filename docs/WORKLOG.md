@@ -30,6 +30,52 @@ Each entry:
 
 ---
 
+## Exams + Courses — 2026-11-16 — Exam catalog + sessions + course masters + offerings
+
+### Done
+- **DB migration** `20261116000008_exams_courses.sql` applied:
+  - `exams` table (30 cols) — catalog: slug, name, conducting_body, exam_type (entrance/competitive/certification/recruitment/eligibility/board), level (national/state/institutional), description, eligibility (JSONB), exam_mode, duration, total_questions/marks, marking_scheme, sections (JSONB), languages, official_website, status, SEO.
+  - `exam_sessions` table (21 cols) — time-bound: exam_id, year, session_slug, session_label, slug (composite), notification_date, application_start/end, exam_date, admit_card_url, result_date/url, apply_link, auto_status, status.
+  - **Child table reuse**: added `exam_session_id` column to existing `event_updates`, `event_guides`, `event_dates` + CHECK constraint ensuring exactly one parent (event_id XOR exam_session_id). No new child tables — the same infrastructure serves both opportunities and exam sessions.
+  - `course_masters` table (27 cols) — catalog: slug, name, level (undergrad/postgrad/diploma/certificate/doctoral/school), stream, description, duration, eligibility, career_prospects, specializations, typical_entrance_exams, fees_min/max/avg.
+  - `course_offerings` table (21 cols) — institution-specific: course_master_id, institution_id, fees_total/per_year, seats, apply_link, brochure_url, batch_year, mode (regular/distance/online).
+  - 5 enums: exam_type, exam_level, exam_status, course_level, course_status.
+  - Follow enum expanded: added 'exam' + 'exam-session' to follow_target_type.
+  - Fan-out trigger `notify_exam_session_followers()` — after INSERT on event_updates with exam_session_id, notifies followers of that session.
+  - ~30 RLS policies.
+- **Console pages**:
+  - `/console/exams` — list + add form (name, slug, type, level, conducting body, description, status).
+  - `/console/exams/[id]` — edit exam details + manage sessions (add/delete, with dates + apply link).
+  - `/console/exams/[id]/sessions/[sessionId]` — manage session's live updates + guide sections (reuses event_updates/event_guides with exam_session_id).
+  - `/console/courses` — list + add form (name, slug, level, stream, duration, description).
+  - `/console/courses/[id]` — edit course master + manage institution offerings (add offering: select institution, fees, seats, batch year, apply link).
+- **Public pages**:
+  - `/exams/[slug]` — exam catalog page: header (name, type, level, conducting body), description, exam pattern (mode/duration/questions/marks), marking scheme, eligibility, official website link, Follow button, sessions list.
+  - `/exams/[slug]/[session]` — exam session page: session dates (notification/apply start/end/exam/result), apply link, guide sections, live updates timeline (with realtime subscription via exam_session_id), Follow Session button.
+- **EventTimeline** component updated — accepts optional `examSessionId` prop; if set, subscribes to `exam_session_id` filter instead of `event_id`.
+- **Sidebar** — added "Exams" + "Courses" nav items under Content group.
+- **Server actions** (`src/lib/exams/actions.ts`): saveExam, deleteExam, saveExamSession, deleteExamSession, addExamSessionUpdate, deleteExamSessionUpdate, addExamSessionGuide, deleteExamSessionGuide, saveCourseMaster, deleteCourseMaster, saveCourseOffering, deleteCourseOffering.
+- **Build**: `npm run build` passes. 40 routes.
+
+### DB changes
+- 4 new tables (exams, exam_sessions, course_masters, course_offerings).
+- 3 existing tables altered (event_updates, event_guides, event_dates — added exam_session_id + CHECK).
+- 5 enums, 2 triggers, ~30 RLS policies.
+- Follow enum expanded by 2 values.
+- Total tables: 26.
+
+### Pushed
+- (this commit) — Exams + Courses model + console + public pages.
+
+### Notes for the founder
+- **Exams are now a first-class entity** — separate from opportunities. Create an exam (e.g. "MP Board 10th"), add sessions (e.g. "2026"), publish live updates + guides per session.
+- **Courses** are catalog-level (B.Tech CSE) with institution-specific offerings (B.Tech CSE at IIT Delhi). Offerings link to institutions via FK.
+- **Reuse**: live updates + guides use the same `event_updates`/`event_guides` tables as opportunities — just with `exam_session_id` instead of `event_id`. The CHECK constraint ensures exactly one parent is set.
+- **Follow** supports `exam` (catalog) and `exam-session` (time-bound instance). Following a session → notifications on new live updates.
+- **URL structure**: `/exams/[slug]` (catalog), `/exams/[slug]/[session]` (session with timeline + guide).
+
+---
+
 ## S08 — 2026-11-16 — Soft Launch Prep (seed + screenshots)
 
 ### Done
