@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "type": "govt-schemes",
+  "slug": "pm-svanidhi-scheme-2026",
+  "title": "PM SVANIDHI Scheme 2026 — Street Vendor Loan",
+  "title_hi": "पीएम स्वनिधि योजना 2026 — स्ट्रीट वेंडर लोन",
+  "summary": "PM Street Vendor's Atma Nirbhar Nidhi (PM SVANIDHI) provides working capital loans up to ₹10,000 to street vendors.",
+  "conducting_body": "Ministry of Housing and Urban Affairs",
+  "conducting_body_slug": "mohua",
+  "locations": ["All India"],
+  "apply_mode": "online",
+  "apply_link": "https://pmsvanidhi.mohua.gov.in",
+  "status": "published",
+  "tags": ["scheme", "loan", "street-vendor", "urban"],
+  "eligibility": {
+    "criteria": "Street vendors in urban areas. Must have a vending certificate.",
+    "age_min": 18
+  },
+  "body_md": "## PM SVANIDHI Scheme 2026\n\nThe PM Street Vendor's AtmaNirbhar Nidhi scheme provides affordable working capital loans to street vendors.\n\n### Loan Details\n\n- First tranche: up to ₹10,000\n- Second tranche: up to ₹20,000\n- Third tranche: up to ₹50,000",
+  "meta_title": "PM SVANIDHI Scheme 2026 — Apply for Street Vendor Loan",
+  "meta_description": "PM SVANIDHI provides working capital loans up to ₹10,000 to street vendors. Apply online at pmsvanidhi.mohua.gov.in.",
+  "updates": [
+    { "kind": "info", "title": "Scheme Extended", "body_md": "PM SVANIDHI has been extended through December 2026.", "sort_order": 1 }
+  ],
+  "guides": [
+    { "section": "eligibility", "title": "Who can apply?", "body_md": "Any street vendor in an urban area holding a Certificate of Vending.", "sort_order": 1 }
+  ],
+  "dates": []
+}

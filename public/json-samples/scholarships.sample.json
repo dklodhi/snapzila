@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "type": "scholarships",
+  "slug": "national-scholarship-portal-2026",
+  "title": "National Scholarship Portal 2026 — Apply for Central & State Scholarships",
+  "title_hi": "राष्ट्रीय छात्रवृत्ति पोर्टल 2026 — केंद्रीय एवं राज्य छात्रवृत्तियों के लिए आवेदन",
+  "summary": "NSP 2026 invites applications from students of SC/ST/OBC/Minority/EWS categories for various scholarships.",
+  "conducting_body": "Ministry of Electronics and IT",
+  "conducting_body_slug": "meity",
+  "locations": ["All India"],
+  "apply_mode": "online",
+  "apply_link": "https://scholarships.gov.in",
+  "apply_start_date": "2026-07-01",
+  "apply_end_date": "2026-10-31",
+  "status": "published",
+  "tags": ["scholarship", "nsp", "students", "sc-st", "obc", "minority"],
+  "eligibility": {
+    "education": "Class 1 to Postgraduate level",
+    "income_limit": "Family income up to 1.5 lakh to 8 lakh per annum (varies by scheme)"
+  },
+  "fees_inr_paise": 0,
+  "body_md": "## National Scholarship Portal 2026\n\nThe NSP is a one-stop platform for students to apply for scholarships offered by Central Government, State Governments, and Union Territory administrations.",
+  "meta_title": "National Scholarship Portal 2026 — NSP Online Application",
+  "meta_description": "Apply for central and state scholarships via National Scholarship Portal 2026. Open from July 1 to October 31.",
+  "updates": [
+    { "kind": "info", "title": "Applications Open", "body_md": "NSP 2026 applications are now open.", "sort_order": 1 }
+  ],
+  "guides": [
+    { "section": "eligibility", "title": "Eligibility", "body_md": "Varies by scheme. See individual scholarship pages.", "sort_order": 1 },
+    { "section": "apply_steps", "title": "How to Apply", "body_md": "1. Register on scholarships.gov.in\n2. Fill personal + academic details\n3. Upload documents\n4. Submit", "sort_order": 2 }
+  ],
+  "dates": [
+    { "label": "Application Start", "date": "2026-07-01", "sort_order": 1 },
+    { "label": "Application End", "date": "2026-10-31", "sort_order": 2 }
+  ]
+}

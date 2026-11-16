@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "type": "govt-jobs",
+  "slug": "ssc-cgl-2026-notification",
+  "title": "SSC CGL 2026 Notification — Combined Graduate Level Examination",
+  "title_hi": "एसएससी सीजीएल 2026 अधिसूचना — संयुक्त स्नातक स्तरीय परीक्षा",
+  "summary": "Staff Selection Commission has released the notification for Combined Graduate Level Examination 2026 for various Group B and C posts.",
+  "summary_hi": "कर्मचारी चयन आयोग ने विभिन्न ग्रुप बी और सी पदों के लिए संयुक्त स्नातक स्तरीय परीक्षा 2026 की अधिसूचना जारी की है।",
+  "conducting_body": "Staff Selection Commission",
+  "conducting_body_slug": "ssc",
+  "locations": ["All India"],
+  "apply_mode": "online",
+  "apply_link": "https://ssc.nic.in",
+  "apply_start_date": "2026-06-10",
+  "apply_end_date": "2026-07-10",
+  "exam_date": "2026-08-15",
+  "result_date": "2026-11-30",
+  "status": "published",
+  "featured": true,
+  "tags": ["ssc", "cgl", "graduate", "all-india"],
+  "eligibility": {
+    "age_min": 18,
+    "age_max": 32,
+    "age_relaxation": {
+      "sc_st": 5,
+      "obc": 3,
+      "pwd": 10
+    },
+    "education": "Bachelor's degree from a recognized university"
+  },
+  "vacancy": {
+    "total": 17727,
+    "category_breakdown": {
+      "ur": 8000,
+      "obc": 5000,
+      "sc": 2500,
+      "st": 1500,
+      "ews": 727
+    }
+  },
+  "fees_inr_paise": 10000,
+  "fees_breakdown": {
+    "general": 100,
+    "sc_st": 0,
+    "female_all": 0
+  },
+  "selection_process": ["Tier-I (CBT)", "Tier-II (CBT)", "Document Verification"],
+  "body_md": "## SSC CGL 2026\n\nStaff Selection Commission invites online applications for the Combined Graduate Level Examination 2026.\n\n### Posts\n\n- Assistant Section Officer\n- Inspector (Central Excise)\n- Assistant Audit Officer\n- And more...\n\n### How to Apply\n\n1. Visit the official SSC website\n2. Register with your details\n3. Fill the application form\n4. Upload documents\n5. Pay application fee\n6. Submit and print confirmation",
+  "body_md_hi": "## एसएससी सीजीएल 2026\n\nकर्मचारी चयन आयोग संयुक्त स्नातक स्तरीय परीक्षा 2026 के लिए ऑनलाइन आवेदन आमंत्रित करता है।",
+  "meta_title": "SSC CGL 2026 Notification — 17,727 Vacancies, Apply Online",
+  "meta_description": "SSC CGL 2026 notification released. 17,727 vacancies across Group B & C posts. Apply online from June 10 to July 10, 2026.",
+  "updates": [
+    {
+      "kind": "info",
+      "title": "Notification Released",
+      "body_md": "SSC has officially released the CGL 2026 notification on the website.",
+      "sort_order": 1
+    },
+    {
+      "kind": "deadline",
+      "title": "Last Day to Apply",
+      "body_md": "Today is the last day to submit online applications for SSC CGL 2026.",
+      "sort_order": 2
+    }
+  ],
+  "guides": [
+    {
+      "section": "eligibility",
+      "title": "Eligibility Criteria",
+      "body_md": "### Age Limit\n\n18-32 years (relaxations as per government norms)\n\n### Educational Qualification\n\nBachelor's degree from a recognized university.",
+      "sort_order": 1
+    },
+    {
+      "section": "apply_steps",
+      "title": "How to Apply",
+      "body_md": "1. Visit ssc.nic.in\n2. Click on 'Apply' link\n3. Register with email and mobile\n4. Fill the application form\n5. Upload photo and signature\n6. Pay fee online\n7. Submit form\n8. Take printout",
+      "sort_order": 2
+    }
+  ],
+  "dates": [
+    { "label": "Notification Release", "date": "2026-06-09", "sort_order": 1 },
+    { "label": "Application Start", "date": "2026-06-10", "sort_order": 2 },
+    { "label": "Application End", "date": "2026-07-10", "sort_order": 3 },
+    { "label": "Tier-I Exam", "date": "2026-08-15", "sort_order": 4 },
+    { "label": "Result", "date": "2026-11-30", "sort_order": 5 }
+  ]
+}

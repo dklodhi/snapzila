@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "type": "admissions",
+  "slug": "iit-jee-advanced-2026-admission",
+  "title": "IIT JEE Advanced 2026 — Admission to IITs",
+  "title_hi": "आईआईटी जेईई एडवांस्ड 2026 — आईआईटी में प्रवेश",
+  "summary": "JEE Advanced 2026 registration opens for admission to B.Tech programs at Indian Institutes of Technology.",
+  "conducting_body": "IIT Madras",
+  "conducting_body_slug": "iit-madras",
+  "locations": ["All India"],
+  "apply_mode": "online",
+  "apply_link": "https://jeeadv.ac.in",
+  "apply_start_date": "2026-04-30",
+  "apply_end_date": "2026-05-05",
+  "exam_date": "2026-05-18",
+  "result_date": "2026-06-10",
+  "status": "published",
+  "featured": true,
+  "tags": ["iit", "jee-advanced", "btech", "engineering"],
+  "eligibility": {
+    "age_min": 17,
+    "age_max": 25,
+    "education": "Must qualify JEE Main 2026 and be among top 2.5 lakh candidates"
+  },
+  "fees_inr_paise": 290000,
+  "fees_breakdown": {
+    "general": 2900,
+    "sc_st_pwd_female": 1450
+  },
+  "selection_process": ["JEE Main (qualifying)", "JEE Advanced (ranking)", "JoSAA Counseling"],
+  "body_md": "## JEE Advanced 2026\n\nIIT Madras will conduct JEE Advanced 2026 for admission to B.Tech programs at all IITs.\n\n### Number of Seats\n\nApproximately 16,000 seats across 23 IITs.",
+  "meta_title": "JEE Advanced 2026 — Registration, Dates, Eligibility",
+  "meta_description": "JEE Advanced 2026 conducted by IIT Madras. Registration from April 30 to May 5. Exam on May 18.",
+  "updates": [
+    { "kind": "info", "title": "Registration Opens", "body_md": "JEE Advanced 2026 registration is now open.", "sort_order": 1 }
+  ],
+  "guides": [
+    { "section": "eligibility", "title": "Eligibility", "body_md": "Top 2.5 lakh JEE Main qualifiers.", "sort_order": 1 }
+  ],
+  "dates": [
+    { "label": "Registration Start", "date": "2026-04-30", "sort_order": 1 },
+    { "label": "Registration End", "date": "2026-05-05", "sort_order": 2 },
+    { "label": "Exam Date", "date": "2026-05-18", "sort_order": 3 }
+  ]
+}

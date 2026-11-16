@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "type": "articles",
+  "slug": "how-to-prepare-for-ssc-cgl-2026-complete-guide",
+  "title": "How to Prepare for SSC CGL 2026 — Complete Guide",
+  "title_hi": "एसएससी सीजीएल 2026 की तैयारी कैसे करें — संपूर्ण गाइड",
+  "summary": "A comprehensive guide on SSC CGL 2026 preparation strategy, syllabus, books, and study plan.",
+  "conducting_body": "SnapZila Editorial",
+  "conducting_body_slug": "snapzila",
+  "locations": ["All India"],
+  "apply_mode": "na",
+  "status": "published",
+  "featured": true,
+  "tags": ["ssc-cgl", "preparation", "guide", "study-plan"],
+  "body_md": "## How to Prepare for SSC CGL 2026\n\nSSC CGL is one of the most competitive exams in India. This guide covers everything you need to prepare effectively.\n\n### Syllabus Overview\n\nThe exam has two tiers:\n\n1. **Tier-I**: General Intelligence, General Awareness, Quantitative Aptitude, English Comprehension\n2. **Tier-II**: Quantitative Abilities, English Language & Comprehension, Statistics, General Studies\n\n### Study Plan\n\n- **Month 1-2**: Learn basics, make notes\n- **Month 3-4**: Practice questions, take topic tests\n- **Month 5-6**: Full mock tests, analyze mistakes\n- **Month 7-8**: Revision + previous year papers\n\n### Best Books\n\n- Quantitative Aptitude: R.S. Aggarwal\n- English: S.P. Bakshi\n- General Studies: Lucent\n- Reasoning: R.S. Aggarwal",
+  "meta_title": "SSC CGL 2026 Preparation Guide — Syllabus, Books, Study Plan",
+  "meta_description": "Complete guide to prepare for SSC CGL 2026 exam. Syllabus, best books, 8-month study plan, and preparation tips.",
+  "updates": [],
+  "guides": [
+    { "section": "faq", "title": "How many hours should I study?", "body_md": "6-8 hours of focused study daily is recommended.", "sort_order": 1 }
+  ],
+  "dates": []
+}

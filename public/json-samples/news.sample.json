@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "type": "news",
+  "slug": "cbse-class-10-result-2026-declared",
+  "title": "CBSE Class 10 Result 2026 Declared — Check at cbseresults.nic.in",
+  "title_hi": "सीबीएसई कक्षा 10 परिणाम 2026 घोषित — cbseresults.nic.in पर देखें",
+  "summary": "Central Board of Secondary Education has declared the Class 10 board exam results for 2026.",
+  "conducting_body": "Central Board of Secondary Education",
+  "conducting_body_slug": "cbse",
+  "locations": ["All India"],
+  "apply_mode": "na",
+  "status": "published",
+  "tags": ["cbse", "class-10", "result", "board-exam"],
+  "body_md": "## CBSE Class 10 Result 2026\n\nThe CBSE has declared the Class 10 board exam results. Students can check their results on the official website.\n\n### How to Check\n\n1. Visit cbseresults.nic.in\n2. Click on 'CBSE Class 10 Result 2026'\n3. Enter roll number, school number, and center number\n4. Submit and view result\n5. Download and print",
+  "meta_title": "CBSE Class 10 Result 2026 Declared — Check Here",
+  "meta_description": "CBSE Class 10 board exam 2026 results declared. Check online at cbseresults.nic.in with your roll number.",
+  "updates": [
+    { "kind": "result", "title": "Result Declared", "body_md": "CBSE Class 10 results 2026 have been declared. Pass percentage: 94.2%.", "sort_order": 1 }
+  ],
+  "guides": [
+    { "section": "faq", "title": "How to check result?", "body_md": "Visit cbseresults.nic.in and enter your credentials.", "sort_order": 1 }
+  ],
+  "dates": [
+    { "label": "Result Declaration", "date": "2026-05-13", "sort_order": 1 }
+  ]
+}

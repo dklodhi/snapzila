@@ -30,6 +30,78 @@ Each entry:
 
 ---
 
+## S02 — 2026-11-16 — Console Core (post management + JSON paste + audit log)
+
+### Done
+- **DB migration** `20261116000002_content_tables.sql` applied to Supabase:
+  - 9 new tables: `tags`, `events` (41 cols, down from old project's 72), `event_updates`, `event_guides`, `event_dates`, `event_documents`, `static_pages`, `site_settings`, `audit_logs`.
+  - 7 enums: `event_type`, `event_status`, `apply_mode`, `update_kind`, `guide_section`, `doc_type`, `tag_kind`, `page_status`.
+  - `search_vector` tsvector on events (maintained by trigger).
+  - `updated_at` triggers on all content tables.
+  - 2 helper functions: `events_update_search_vector()`, `create_event_from_json(payload)` RPC.
+  - RLS on every table: public reads published content, team reads/writes all, audit_logs append-only.
+- **Console Shell** — shared layout for all `/console/*` pages (except login):
+  - Left sidebar (`ConsoleSidebar`): dark theme, grouped nav (Main / Content / System), active-link highlighting via `usePathname()`, placeholders for S4/S5/S7 items.
+  - Top bar (`ConsoleTopbar`): "New Post" dropdown (Manual / JSON paste), user menu (avatar, email, role, logout, view public site).
+  - Route groups: `(auth)/login` (no shell) + `(shell)/` (with shell + `requireTeamMember()`).
+- **Post List** (`/console/posts`): filterable by type, table with title/type/status/updated/actions.
+- **Manual Post Editor**:
+  - `/console/posts/new-manual` — create new event with core fields.
+  - `/console/posts/[id]/edit` — edit event + manage child entities inline:
+    - `EventCoreForm` component: Basic (type, title, slug, tags, summary, status), Organization & Apply (conducting body, apply mode/link, dates), Body (EN+HI markdown), SEO.
+    - Live Updates card: list + add form (kind, title, body, doc_url) + delete.
+    - Guide Sections card: list + add form (section, title, body) + delete.
+    - Important Dates card: list + add form (label, date, url) + delete.
+- **JSON Paste Editor** (`/console/posts/new-json`): client component with textarea, "Load sample" buttons per type, "Validate" (Zod schema), "Create" (calls `create_event_from_json` RPC).
+- **6 JSON Samples** in `public/json-samples/`: govt-jobs, admissions, scholarships, govt-schemes, news, articles — each with realistic data including updates, guides, dates.
+- **Zod schema** (`src/lib/console/schemas.ts`): validates the JSON payload structure before RPC call.
+- **Static Pages** (`/console/pages`): list + new + edit. Fields: slug, title (EN+HI), body (EN+HI markdown), SEO meta, show in header/footer, sort order, status.
+- **Site Settings** (`/console/settings`): KV editor for brand_name, taglines, default_locale, footer_columns. Shows raw JSON view of all settings.
+- **Audit Log** (`/console/audit-log`): viewer with action filter, shows time/action/entity/actor (email + role). Last 100 entries.
+- **Server Actions** (`src/lib/console/actions.ts`): all mutations centralized:
+  - `saveEvent` (create/update), `setEventStatus`, `softDeleteEvent`
+  - `addLiveUpdate`, `deleteLiveUpdate`, `addGuideSection`, `deleteGuideSection`, `addDate`, `deleteDate`
+  - `createEventFromJson` (calls RPC)
+  - `saveStaticPage` (create/update), `deleteStaticPage`
+  - `saveSiteSetting`
+  - Every action calls `writeAuditLog()` after the mutation.
+- **Audit helper** (`src/lib/console/audit.ts`): `writeAuditLog()` appends to `audit_logs` with actor, action, entity, before/after data.
+- **Build**: `npm run build` passes clean. 16 routes compiled.
+
+### DB changes
+- Migration `20261116000002_content_tables.sql` applied.
+- 9 new tables, 7 enums, 2 functions, ~30 RLS policies.
+- Total tables in public schema: 10 (team_members + 9 content/meta).
+
+### Pushed
+- (this commit) — S2 console core code, DB migration, JSON samples, worklog update.
+
+### Broke / Fixed
+- Route group relative imports: `../posts/actions` from `pages/new/page.tsx` failed because `(shell)` route group parentheses confuse the resolver. Fixed by moving `actions.ts` to `src/lib/console/actions.ts` and using `@/lib/console/actions` alias.
+- TS strict: `teamMember.email[0]` flagged as possibly undefined (`noUncheckedIndexedAccess`). Fixed with `(email[0] ?? "?")`.
+- Zod v4: `z.record(z.unknown())` requires two args now. Fixed to `z.record(z.string(), z.unknown())`.
+- Server action bind order: `deleteLiveUpdate(id, eventId)` with `bind(null, eventId).bind(null, updateId)` resulted in swapped args. Fixed by changing signature to `deleteLiveUpdate(eventId, updateId)` to match bind order (outer scope first, inner scope second).
+- `saveSiteSetting(key, value)` didn't work as a form action (forms submit FormData). Fixed to `saveSiteSetting(key, formData)` and extract value inside.
+
+### Deferred (decided this session)
+- Documents upload UI (table exists, RLS exists, but no upload component yet) — defer to S3 when the public view needs to display PDFs.
+- Post bulk actions (bulk publish/unpublish/delete) — defer to later.
+- Team member invite flow — defer.
+- Post scheduling (scheduled_at + cron to auto-publish) — defer to S8.
+- Search within console (the top bar search is visual only) — defer.
+
+### Next session plan (S3)
+- Public Opportunities: listing pages (`/opportunities/[type]`), single event view with timeline + guide + AJAX "View All" + realtime live updates, search page.
+
+### Notes for the founder
+- The console is fully usable for content creation: create events via Manual or JSON editor, add live updates/guide/dates, publish, manage static pages + settings, view audit log.
+- Login at `/console/login` with `admin@snapzila.com`.
+- The 6 JSON samples in `public/json-samples/` are realistic starting points — load one in the JSON paste editor, tweak, and create.
+- Every console write is logged in `audit_logs` — viewable at `/console/audit-log`.
+- Sidebar shows which modules are coming in later sessions (S4/S5/S7) — they are NOT built yet, by design.
+
+---
+
 ## S01 — 2026-11-16 — Auth & RBAC (Supabase Auth + team_members)
 
 ### Done
