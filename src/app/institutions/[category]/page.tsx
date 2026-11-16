@@ -77,29 +77,26 @@ export default async function CategoryListingPage({
           {institutions && institutions.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {institutions.map((inst) => (
-                <Card key={inst.id} className="transition-colors hover:border-brand">
-                  <CardContent className="p-4">
-                    <h2 className="font-display text-base font-semibold text-ink">{inst.name}</h2>
-                    {(inst.city || inst.state) && (
-                      <p className="mt-1 text-xs text-muted">
-                        {[inst.city, inst.state].filter(Boolean).join(", ")}
-                      </p>
-                    )}
-                    {inst.description && (
-                      <p className="mt-1.5 text-sm text-muted line-clamp-2">{inst.description}</p>
-                    )}
-                    {inst.website && (
-                      <a
-                        href={inst.website}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-2 inline-block text-xs text-brand hover:underline"
-                      >
-                        Website ↗
-                      </a>
-                    )}
-                  </CardContent>
-                </Card>
+                <Link key={inst.id} href={`/institutions/${category}/${inst.slug}`}>
+                  <Card key={inst.id} className="transition-colors hover:border-brand">
+                    <CardContent className="p-4">
+                      <h2 className="font-display text-base font-semibold text-ink">{inst.name}</h2>
+                      {(inst.city || inst.state) && (
+                        <p className="mt-1 text-xs text-muted">
+                          {[inst.city, inst.state].filter(Boolean).join(", ")}
+                        </p>
+                      )}
+                      {inst.description && (
+                        <p className="mt-1.5 text-sm text-muted line-clamp-2">{inst.description}</p>
+                      )}
+                      {inst.website && (
+                        <span className="mt-2 inline-block text-xs text-brand">
+                          Website ↗
+                        </span>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           ) : (

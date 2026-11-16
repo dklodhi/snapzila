@@ -149,3 +149,46 @@ export function findLabel(
 ): string | undefined {
   return list.find((item) => item.value === value)?.label;
 }
+
+// ─── 17. PER-CONTENT-TYPE GUIDE SECTIONS ────────────────────────────────────
+// Returns the relevant guide sections for a given content type.
+// All content types share the same guide_section enum (20 values),
+// but this filters to the most relevant ones per type.
+
+export function getGuidesForType(type: string): Array<{ value: string; label: string; icon: string }> {
+  const GUIDES_BY_TYPE: Record<string, string[]> = {
+    "govt-jobs": [
+      "syllabus", "exam-pattern", "how-to-apply", "eligibility", "fees",
+      "dates", "documents", "selection-process", "preparation", "best-books",
+      "study-material", "coaching", "previous-papers", "cut-off",
+      "salary-details", "joining-process", "interview-tips", "posting-locations", "faq",
+    ],
+    admissions: [
+      "eligibility", "how-to-apply", "fees", "dates", "documents",
+      "exam-pattern", "preparation", "cut-off", "faq",
+    ],
+    scholarships: [
+      "eligibility", "how-to-apply", "documents", "selection-process", "faq",
+    ],
+    "govt-schemes": [
+      "eligibility", "how-to-apply", "documents", "faq",
+    ],
+    news: ["faq"],
+    articles: ["faq"],
+  };
+  const allowedSlugs = GUIDES_BY_TYPE[type] ?? GUIDE_SECTIONS.map((g) => g.value);
+  return GUIDE_SECTIONS.filter((g) => allowedSlugs.includes(g.value));
+}
+
+export function getUpdateTypesForType(type: string): Array<{ value: string; label: string; icon: string; color: string }> {
+  const TYPES_BY_CONTENT: Record<string, string[]> = {
+    "govt-jobs": ["new", "date_extend", "corrigendum", "admit_card", "answer_key", "result", "shortlist", "other"],
+    admissions: ["new", "date_extend", "corrigendum", "admit_card", "result", "other"],
+    scholarships: ["new", "date_extend", "corrigendum", "result", "other"],
+    "govt-schemes": ["new", "corrigendum", "other"],
+    news: ["other"],
+    articles: ["other"],
+  };
+  const allowedValues = TYPES_BY_CONTENT[type] ?? UPDATE_TYPES.map((u) => u.value);
+  return UPDATE_TYPES.filter((u) => allowedValues.includes(u.value));
+}
