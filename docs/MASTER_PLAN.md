@@ -50,15 +50,28 @@ Phase 1 is broken into **9 sessions (S0–S8)**. Each session ends with: code pu
 
 ## 2. Why We Restarted
 
-The old project (`DK9425/snapzila`) was technically rich but commercially unlaunchable for a solo founder. See [`OLD_PROJECT_ANALYSIS.md`](OLD_PROJECT_ANALYSIS.md) for the full postmortem; the headline numbers:
+The old project (`DK9425/snapzila`) was technically rich but commercially unlaunchable for a solo founder. The repo was cloned and analyzed at both the DB level (via Supabase REST API) and the code level (via GitHub token) on 2026-11-16. See [`OLD_PROJECT_ANALYSIS.md`](OLD_PROJECT_ANALYSIS.md) §1–5 for DB findings and §6 for the full code-level findings. The headline numbers:
 
+**DB-level (Supabase REST API inspection)**:
 - **129 tables** in Supabase, of which **~115 were empty** (built, never used).
 - The `events` table alone had **72 columns**; `exams` had 49; `organisations` had 48 — one table doing the job of ten, making queries and UI generation painful.
 - Built five overlapping businesses: SnapZila (core), **HireZila** (private jobs + employer widgets), **MOOC aggregator**, **AI crawler**, **API monetization**, plus Telegram + WhatsApp + campus drives + discussion forums.
 - Three overlapping auth/notification surfaces, two overlapping org tables (`organisations` vs `business_profiles`), unclear tech debt (`snap_ids`, `zilabiz_slug_redirects`, `wp_import_log`).
-- No clear MVP boundary → no clear launch path → never launched.
 
-**The restart keeps the idea and the data model concept, drops the scope.** The new Supabase project starts empty. Nothing is imported blindly; every table is re-justified against Phase 1 scope before being created.
+**Code-level (full repo clone)**:
+- **1,517 files** (714 `.tsx`, 599 `.ts`), **95 top-level routes**, **129 Prisma models** (200 KB `schema.prisma`).
+- **Custom auth** reinvented from scratch: Argon2id + 3 JWT secrets + PII encryption + OTP via Upstash Redis + 3 OAuth providers. ~2,000+ lines that Supabase Auth replaces natively.
+- **Prisma + Neon → Supabase migration baggage**: a 200 KB Prisma schema AND a 146 KB `schema.sql` kept in sync manually; 20 migration SQL files; 60+ backfill/check scripts.
+- **Event god-object**: 72+ fields with a self-referencing parent/update/guide hierarchy in ONE table, direct relations to HireZila tables, denormalized counters, 12 content types, private-job fields, news fields, WordPress-parity fields, eligibility fields — all in one model.
+- **11 separate editor subdirectories** (`src/components/editor/{admission,certification,competition,conference,fellowship,govt-job,grant,internship,scheme,scholarship,common}`) — 11 bespoke forms for 11 content types.
+- **~30 locales** for hreflang (723-line `locale-registry.ts`) but only 3 real translations (en/hi/ne) — SEO noise, not localization.
+- **30 `src/lib/` subdirectories** representing 30 concerns (ai, b2b, billing, community, discuss, hirezila, local-jobs, etc.).
+- **15 TODOs** for incomplete critical features (OTP, email, auth middleware), **190 console.error/warn** scattered in production code, **102 `any` type usages** compromising type safety.
+- Two prior cleanup attempts (Jan 2025) removed dead tables and subdomains but did not cut features — the sprawl came back.
+
+**The root cause**: no clear MVP boundary → no clear launch path → never launched.
+
+**The restart keeps the idea and the data model concept, drops the scope.** The new Supabase project starts empty. Nothing is imported blindly; every table is re-justified against Phase 1 scope before being created. No code is reused from the old repo; the old i18n URL pattern is referenced as the approach to follow (simplified to EN+HI) but the code itself is rewritten.
 
 ---
 
@@ -316,11 +329,23 @@ Root domain (e.g. `snapzila.com`) serves English-India. Hindi-India is prefixed.
 | Deployment | **Vercel** (Next.js native) | Simplest for solo founder |
 | CI | GitHub Actions (lint + typecheck + build on PR) | Catch breaks before merge |
 
-**Not chosen** (and why):
+**Not chosen** (and why — with reference to the old project's mistakes, see `OLD_PROJECT_ANALYSIS.md` §6.2):
 - Not Next.js Pages Router — App Router is the future and i18n is cleaner there.
-- Not Prisma — Supabase exposes Postgres directly via JS client + RLS; an ORM adds friction with RLS.
+- Not **Prisma** — the old project used Prisma 6.11 with a 200 KB `schema.prisma` + a parallel 146 KB `supabase-setup/schema.sql` kept in sync manually. Supabase exposes Postgres directly via JS client + RLS; an ORM adds friction with RLS and double-schema maintenance.
+- Not **custom JWT auth** — the old project reinvented auth (Argon2id + 3 JWT secrets + PII encryption + OTP via Upstash Redis + 3 OAuth providers, ~2,000+ lines). Supabase Auth handles all of this natively with RLS-compatible sessions.
+- Not **socket.io** — the old project used `socket.io-client` for realtime. Supabase Realtime (Postgres Changes) integrates with RLS and removes a moving part.
+- Not **Bun** — the old project used Bun (lockfile quirks noted in worklog). Node + npm/pnpm is safer for a solo founder.
+- Not **Upstash Redis** — the old project needed Redis only for custom OTP/rate-limit. Supabase Auth + Edge Functions remove that need.
+- Not **Groq/Gemini AI** — the old project integrated both for AI features. Phase 1 has no AI features; defer until content volume justifies it.
+- Not **leaflet/maps** — the old project used maps for private-job geo-search. Private jobs are out of Phase 1.
+- Not **cheerio/puppeteer-core/pdf-parse/mammoth** — the old project's crawler/AI-extraction stack. Crawler is out of Phase 1.
 - Not Redux — overkill; TanStack Query + zustand covers all needs.
 - Not a separate Node backend — Supabase Edge Functions cover the few server-side needs (e.g. JSON-paste validation, scheduled digest).
+
+**Code quality bar** (binding for all Phase 1 sessions):
+- TypeScript `"strict": true`; ESLint rule `no-explicit-any` errors. Zero `any` allowed. (Old project had 102.)
+- No `console.error/warn` in committed code; use a thin `lib/log.ts` wrapper that ships errors to PostHog. (Old project had 190 scattered.)
+- No `TODO/FIXME/HACK` in committed code on `main`; if work is incomplete, it stays on a branch with a tracking issue. (Old project had 15 in production.)
 
 ---
 

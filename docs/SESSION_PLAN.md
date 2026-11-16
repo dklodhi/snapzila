@@ -208,21 +208,38 @@ None.
 
 **Goal**: Hindi mirror live, SEO solid, performance + accessibility pass.
 
+**Reference**: the old project (`DK9425/snapzila`) had a well-designed i18n URL strategy implemented in `middleware.ts` (216 lines) and `src/lib/i18n/locale-registry.ts` (723 lines). The URL pattern is good and worth keeping; the locale count (~30) is not. Phase 1 keeps the pattern, drops to 2 locales.
+
+The old URL pattern to replicate (simplified):
+- Root (`/`) = `en-IN` (no prefix). ✓
+- Other locales = `/{locale-lowercase}/` prefix (e.g. `/hi-in/`). ✓
+- Locale codes lowercase in URLs, mixed-case in HTML `lang` / hreflang (`hi-IN`). ✓
+- `x-locale` + `x-country` headers set by middleware for server components to read. ✓
+- Cookie (`snapzila_locale`) for client-side reads. ✓
+- Skip middleware on `/api/*`, `/_next/*`, `/console/*`, static files. ✓
+- Dashboard/console routes always render in `en-IN` (no locale switching). ✓
+
+What to DROP from the old pattern:
+- IP-based geo-redirect on root `/` (reads `x-vercel-ip-country`). Phase 1 is India-only; no geo-redirect needed.
+- ~28 locale variants beyond EN+HI (hreflang stubs with no real translations).
+- The 723-line locale registry — Phase 1's registry is ~30 lines for 2 locales.
+
 ### Tasks
 1. Configure `next-intl` with `defaultLocale='en-IN'`, `locales=['en-IN','hi-IN']`, `localePrefix='as-needed'`.
-2. Extract all UI strings into `messages/en-IN.json` + `messages/hi-IN.json`. Translate to Hindi.
-3. Wire locale-aware date/number/currency formatting (`Intl.DateTimeFormat('hi-IN')`).
-4. Build `<LanguageSwitcher>` in header.
-5. Mirror all public routes at `/hi-in/...`.
-6. Console stays English-only.
-7. Sitemap: `/sitemap.xml` + `/hi-in/sitemap.xml` (auto-generated).
-8. `robots.txt`.
-9. `hreflang` tags on every page.
-10. PostHog integration (`usePostHog` + identify on login).
-11. Google Search Console verification meta tag (configurable from console settings).
-12. Lighthouse pass on home + a sample event page; fix LCP/CLS issues.
-13. Accessibility pass: axe-core scan, keyboard nav, focus rings, aria labels.
-14. Performance: image optimization (`next/image`), font-display swap, prefetch hover.
+2. Write `middleware.ts` following the old pattern above (simplified to 2 locales, no geo-redirect). Set `x-locale` header + `snapzila_locale` cookie for server-component reads.
+3. Extract all UI strings into `messages/en-IN.json` + `messages/hi-IN.json`. Translate to Hindi.
+4. Wire locale-aware date/number/currency formatting (`Intl.DateTimeFormat('hi-IN')`, `Intl.NumberFormat('en-IN')` for lakh/crore grouping).
+5. Build `<LanguageSwitcher>` in header — navigates to the equivalent URL in the other locale (not AJAX).
+6. Mirror all public routes at `/hi-in/...`.
+7. Console stays English-only (skip middleware on `/console/*`).
+8. Sitemap: `/sitemap.xml` + `/hi-in/sitemap.xml` (auto-generated, with hreflang alternates per URL).
+9. `robots.txt`.
+10. `hreflang` tags on every page: `en-IN` (root), `hi-IN` (`/hi-in/`), `x-default` → root.
+11. PostHog integration (`usePostHog` + identify on login).
+12. Google Search Console verification meta tag (configurable from console settings).
+13. Lighthouse pass on home + a sample event page; fix LCP/CLS issues.
+14. Accessibility pass: axe-core scan, keyboard nav, focus rings, aria labels.
+15. Performance: image optimization (`next/image`), font-display swap, prefetch hover.
 
 ### Deliverables
 - Both locales live.

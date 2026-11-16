@@ -159,7 +159,141 @@ These are concrete issues spotted in the old schema that must NOT carry forward:
 
 ---
 
-## 6. Lessons → binding rules for Phase 1
+## 6. Code-level findings (post-token analysis, 2026-11-16)
+
+After the founder provided a GitHub token, the old repo (`DK9425/snapzila`) was cloned and analyzed at the code level. The DB-level findings in §1–5 above are confirmed and sharpened by what the actual source code shows.
+
+### 6.1 Scale of the codebase
+
+| Metric | Value |
+| --- | --- |
+| Total files (excl. `node_modules` + `.git`) | **1,517** |
+| `.tsx` files | **714** |
+| `.ts` files | **599** |
+| Top-level routes in `src/app/` | **95** |
+| Prisma models (`prisma/schema.prisma`) | **129** (matches the 129 DB tables) |
+| `prisma/schema.prisma` size | **4,478 lines / 200 KB** |
+| `supabase-setup/schema.sql` size | **146 KB** (migrated from Prisma) |
+| `worklog.md` | **3,499 lines / 218 KB** (plus an archived 18,169-line predecessor) |
+| SQL migration files | 20 |
+| Seed/utility scripts in `scripts/` | 60+ (mostly `backfill-*`, `check-*`, `add-*`) |
+
+### 6.2 Tech stack (as actually built)
+
+| Layer | What the old project used | What Phase 1 uses instead | Why switch |
+| --- | --- | --- | --- |
+| Auth | **Custom**: Argon2id + JWT (3 secrets: `JWT_SECRET`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`) + `PII_ENCRYPTION_KEY` + OTP via Upstash Redis + OAuth (Google/Facebook/Twitter) | **Supabase Auth** (email + password) | Removes ~2,000+ lines of reinvented auth, OTP, refresh-token, and PII-encryption code. Supabase Auth handles all of this with RLS-compatible sessions out of the box. |
+| ORM | **Prisma 6.11** (`prisma/schema.prisma` = source of truth) + a separate `supabase-setup/schema.sql` (migrated copy) | **Direct Supabase JS client** (no ORM) | Prisma + Supabase = double schema maintenance (200 KB Prisma file + 146 KB SQL file kept in sync manually). Prisma also fights RLS. Drop the ORM; use the Supabase client + RLS directly. |
+| DB | Originally **Neon PostgreSQL**, migrated to **Supabase Postgres** (migration script `migrate-neon-to-supabase.ts` exists) | Supabase Postgres (native) | No migration baggage. Start clean. |
+| Realtime | `socket.io-client` | Supabase Realtime (Postgres Changes) | One less moving part; integrates with RLS. |
+| Rate limiting / cache | Upstash Redis (`UPSTASH_REDIS_REST_URL` + token) | Supabase Edge Functions + Postgres for simple counters | Redis was only needed because of the custom OTP/auth machinery. Supabase Auth removes that need. |
+| Email | Resend (`RESEND_API_KEY`, `RESEND_FROM_EMAIL`) | (Deferred to Phase 2) | Phase 1 is in-app notifications only. |
+| AI | Groq (`GROQ_API_KEY`) + Gemini (`GEMINI_API_KEY`) + `z-ai-web-dev-sdk` | (Deferred to Phase 2+) | Needs content volume first. |
+| Rich text | Tiptap (18+ extensions) | Tiptap (3–4 extensions only) | Keep the editor, slim the extensions to what Phase 1 needs. |
+| Maps | `leaflet` + `react-leaflet` | None in Phase 1 | Maps were for private-job geo-search; private jobs are out. |
+| PDF parsing | `pdf-parse` + `mammoth` (DOCX) | None in Phase 1 | Crawler/AI extraction is out. |
+| Crawling | `cheerio` + `puppeteer-core` | None in Phase 1 | Crawler is out. |
+| QR codes | `qrcode` | None in Phase 1 | Not needed. |
+| Image processing | `sharp` | `sharp` (only if needed for OG images) | Keep available; do not build features around it. |
+| Package manager / runtime | Bun (`bun.lock`) | Node + npm or pnpm | Bun caused lockfile quirks; standard tooling is safer for a solo founder. |
+
+### 6.3 The `Event` god-object (the single biggest schema mistake)
+
+The Prisma `Event` model has **72+ fields** and uses a **self-referencing hierarchy** (`parentId` → `Event`, with `postRole ∈ {parent, update, guide}`) to cram three different concepts into one table:
+
+- A parent post (the govt job / admission / etc.)
+- A live update (child of parent, `postRole=update`)
+- A guide (child of parent, `postRole=guide`)
+
+It also carries:
+- 12 content types via `contentType` string
+- Private-job fields (`jobLocation`, `jobLocationType`, `jobType`, `lat`, `lng`, `experienceMin/Max`, `salaryMin/Max`)
+- News-specific fields (`newsAudience`, `newsTags`, `relatedOrgIds`, `newsTimeline`, `newsSources`, `newsPriority`)
+- WordPress-parity fields (`updateType`, `corrigendumFields`, `actionType`, `trustLevel`, `difficulty`, `hideInFeed`, `seoMeta`, `featuredImage`)
+- Eligibility fields (`minQualification`, `allowedTargetGroups`)
+- International fields (`isInternational`, `sourceCountry`, `countrySlug`, `localeCode`)
+- Playbook fields (`playbookCategory`, `playbookOrder`, `playbookReadTime`)
+- Direct relations to HireZila tables (`hirezilaJobApplications`, `hirezilaApplicationForms`, `hirezilaMultiPostRecords`, …)
+- Denormalized counters (`viewCount`, `followCount`, `saveCount`, `shareCount`, `discussCount`)
+- `typeMetadata` JSON (content-type-specific fields — the actual flexible part)
+- `resources` JSON (PDFs/links/images)
+- `eventDates` JSON
+
+**Phase 1 fix** (already in `DB_SCHEMA.md`): split into `events` (core, ~15 cols) + `event_updates` (timeline) + `event_guides` (sections) + `event_dates` (dates) + `event_documents` (PDFs). Flexible fields stay in JSONB columns with documented shapes; no 72-column table.
+
+### 6.4 Twelve content types vs Phase 1's six
+
+Old `contentType` enum: `job | private_job | admission | scholarship | fellowship | internship | scheme | certification | grant | competition | conference | news`.
+
+Phase 1 keeps: `govt-jobs | admissions | scholarships | govt-schemes | news | articles`.
+
+Dropped from Phase 1: `private_job`, `fellowship`, `internship`, `certification`, `grant`, `competition`, `conference`. (Some of these may return in later phases; none are needed for launch.)
+
+### 6.5 Eleven separate editor codepaths
+
+`src/components/editor/` has 11 subdirectories — one per content type:
+`admission`, `certification`, `competition`, `conference`, `fellowship`, `govt-job`, `grant`, `internship`, `scheme`, `scholarship`, `common`.
+
+Each is a bespoke form. Phase 1 collapses this to **one manual editor** with type-specific field sets driven by config, plus **one JSON-paste editor** with per-type Zod schemas and samples. ~11 forms → 1 form + 1 JSON editor.
+
+### 6.6 Route sprawl — 95 top-level routes
+
+`src/app/` top-level directories include:
+`jobs`, `private-jobs`, `local-jobs`, `part-time-jobs`, `work-from-home`, `startup-jobs`, `jobs-by-location`, `jobs-near-me`, `hirezila`, `nexus`, `zilabiz`, `globex`, `govdesk`, `campus`, `campus-drives`, `employer`, `billing`, `api-dashboard`, `api-docs`, `api-portal`, `consultancy`, `telegram`, `snap-id`, `college-predictor`, `eligibility-checker`, `result-check`, `fake-universities`, `cut-offs`, `resume`, `my-activity`, `track-complaint`, `today`, `tab`, `skills`, `courses`, `exams`, `exam`, `exam-calendar`, `employment-news`, `helpline`, `contact`, `institutions`, `news`, `articles`, `scheme`, `scholarship`, `fellowship`, `admission`, `govt-jobs`, `certification`, `competition`, `conference`, `grant`, `internship`, `dashboards`, `console`, `editor`, `setup`, `login`, `signup`, `profile`, `notifications`, `offline`, `international`, `embed`, `build`, `analytics` — plus 14 sitemap routes.
+
+Phase 1 collapses this to roughly **25 routes** (see `MASTER_PLAN.md` §6.1).
+
+### 6.7 The `src/lib/` subsystem sprawl
+
+`src/lib/` has 30 subdirectories representing 30 different concerns:
+`ai`, `analytics`, `auth`, `auto-status`, `b2b`, `billing`, `cache`, `client`, `communication`, `community`, `console`, `contact`, `discuss`, `education`, `eligibility`, `email`, `engine`, `event-index`, `graph`, `hirezila` (+ `hirezila/multi-post`), `i18n`, `local-jobs`, `migration`, `notifications` (+ `notifications/channels`), `og`, `seo`, `storage`, `syllabus`, `telegram`, `trending`.
+
+Phase 1 needs ~10: `auth`, `console`, `i18n`, `seo`, `storage`, `notifications`, `analytics`, `content` (replaces `engine`), `helpline`, `tools`.
+
+### 6.8 i18n: over-engineered for the actual user base
+
+The old `src/lib/i18n/locale-registry.ts` is **723 lines** configuring ~30 locales (22 Indian languages + Nepal, Bhutan, Bangladesh, Sri Lanka, USA) with full hreflang. But only **3 languages had real UI translations** (`messages/en.json`, `messages/hi.json`, `messages/ne.json`). The other ~27 locales were hreflang stubs pointing at English content with a different URL prefix — SEO noise, not real localization.
+
+**Phase 1**: EN-IN (root) + HI-IN (`/hi-in/`) only. Two locales, two real translation files. Defer the rest until soft-launch feedback justifies it.
+
+**However, the URL strategy itself is good and worth keeping**:
+- Root = `en-IN` (no prefix). ✓
+- Other locales = `/{locale-lowercase}/` prefix (e.g. `/hi-in/`). ✓
+- Locale codes lowercase in URLs, mixed-case in HTML `lang` / hreflang. ✓
+- `x-locale` + `x-country` headers set by middleware for server components. ✓
+- Cookie `snapzila_locale` for client-side reads. ✓
+
+Phase 1's `next-intl` config (`defaultLocale='en-IN'`, `localePrefix='as-needed'`) implements exactly this pattern. The old middleware is a useful reference; see `SESSION_PLAN.md` S7.
+
+### 6.9 Code quality signals
+
+| Signal | Count | Interpretation |
+| --- | --- | --- |
+| `TODO` / `FIXME` / `HACK` / `BUG` in `src/` | 15 | Incomplete features: MSG91 OTP integration, email sending, org-admin auth check, Mapbox geocoding, auth middleware on admin routes, OAuth hash cleanup. |
+| `console.error` / `console.warn` in production code | 190 | Error handling not centralized; ad-hoc logging scattered. Phase 1 should use a thin `logError()` wrapper that ships to PostHog. |
+| `: any` / `as any` type usages | 102 | Type safety compromised in 102 places. Phase 1 uses strict TypeScript (`"strict": true`) with zero `any` allowed by ESLint. |
+
+### 6.10 The cleanup attempts that didn't go far enough
+
+The old worklog shows the founder already tried to clean up twice:
+
+1. **2025-01 — Legacy GK/Study/Academy/Compare cleanup**: removed 45 dead tables (`academy_*`, `gk_*`, `study_*`, `compare_*`), deleted 16 orphan files. Schema went from 4,307 → 3,799 lines. But 129 tables remained — still 5× too many.
+2. **2025-01 — Remove all subdomains**: collapsed `hirezila.snapzila.com` → `/hirezila`, etc. Removed 123 lines of subdomain redirect code. But the underlying features stayed.
+
+Both cleanups addressed symptoms (dead tables, subdomain routing) without cutting features. Phase 1 is the actual cut: drop the features themselves, not just their routing layer.
+
+### 6.11 Migration baggage
+
+- `scripts/migrate-neon-to-supabase.ts` — the one-off Neon → Supabase migration script.
+- 20 `supabase-setup/migration-*.sql` files — incremental schema changes applied to Supabase after migration.
+- `prisma/schema.prisma` + `prisma/schema.prisma.prod` — two identical 200 KB files kept in sync manually.
+- 60+ `scripts/backfill-*.ts` / `check-*.ts` / `add-*.ts` — data-fixing scripts accumulated over time.
+
+Phase 1 starts on a clean Supabase project with **zero migration baggage**. Every schema change is a new numbered file under `supabase/migrations/`. No Prisma, no parallel schema.sql.
+
+---
+
+## 7. Lessons → binding rules for Phase 1
 
 1. **One table per concept.** No `organisations` + `business_profiles` duplication.
 2. **JSONB for sparse/flexible fields.** No 72-column tables.
