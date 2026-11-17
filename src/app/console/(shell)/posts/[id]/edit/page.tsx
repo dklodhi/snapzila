@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventCoreForm } from "../../EventCoreForm";
+import { LiveUpdateAddForm } from "@/components/console/live-update-add-form";
 import {
   addLiveUpdate,
   deleteLiveUpdate,
@@ -12,7 +13,7 @@ import {
   addDate,
   deleteDate,
 } from "@/lib/console/actions";
-import { UPDATE_TYPES, CORRIGENDUM_FIELDS, GUIDE_SECTIONS } from "@/lib/constants/editor";
+import { UPDATE_TYPES, CORRIGENDUM_FIELDS, GUIDE_SECTIONS, getGuidesForType, getUpdateTypesForType } from "@/lib/constants/editor";
 import { Trash2 } from "lucide-react";
 
 // Use canonical constants from editor.ts (old project parity — 8 update types + 20 guide sections)
@@ -105,31 +106,8 @@ export default async function EditPostPage({
             )}
           </div>
 
-          {/* Add form */}
-          <form action={addUpdateAction} className="rounded-md border border-line p-3 space-y-3">
-            <p className="text-xs font-medium uppercase text-muted">Add Live Update</p>
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-xs text-muted">Kind</label>
-                <select name="kind" className="flex h-9 w-full rounded-md border border-line bg-white px-2 text-sm">
-                  {UPDATE_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted">Title</label>
-                <input name="title" required className="flex h-9 w-full rounded-md border border-line bg-white px-2 text-sm" />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted">Body (Markdown)</label>
-              <textarea name="body_md" rows={3} className="flex w-full rounded-md border border-line bg-white px-2 py-1.5 font-mono text-sm" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted">Doc URL (optional)</label>
-              <input name="doc_url" type="url" className="flex h-9 w-full rounded-md border border-line bg-white px-2 text-sm" />
-            </div>
-            <Button type="submit" size="sm">Add Update</Button>
-          </form>
+          {/* Add form — client component with corrigendum_fields conditional UI */}
+          <LiveUpdateAddForm action={addUpdateAction} />
         </CardContent>
       </Card>
 
@@ -164,7 +142,7 @@ export default async function EditPostPage({
               <div className="space-y-1">
                 <label className="text-xs text-muted">Section</label>
                 <select name="section" className="flex h-9 w-full rounded-md border border-line bg-white px-2 text-sm">
-                  {GUIDE_SECTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  {getGuidesForType(event.type).map((s) => <option key={s.value} value={s.value}>{s.icon} {s.label}</option>)}
                 </select>
               </div>
               <div className="space-y-1">

@@ -142,6 +142,7 @@ export async function softDeleteEvent(id: string): Promise<void> {
 export async function addLiveUpdate(eventId: string, formData: FormData): Promise<void> {
   const teamMember = await requireTeamMember();
   const supabase = await createClient();
+  const corrigendumFields = formData.getAll("corrigendum_fields") as string[];
   const { error } = await supabase.from("event_updates").insert({
     event_id: eventId,
     kind: (formData.get("kind") as string) || "info",
@@ -150,6 +151,7 @@ export async function addLiveUpdate(eventId: string, formData: FormData): Promis
     body_md: (formData.get("body_md") as string) || null,
     body_md_hi: (formData.get("body_md_hi") as string) || null,
     doc_url: (formData.get("doc_url") as string) || null,
+    corrigendum_fields: corrigendumFields.length > 0 ? corrigendumFields : [],
     created_by: teamMember.id,
   });
   if (error) throw new Error(`Failed: ${error.message}`);

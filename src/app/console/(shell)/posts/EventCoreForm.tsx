@@ -2,11 +2,13 @@
  * Event core form (shared by new + edit pages).
  * Server component — uses server action via form action prop.
  */
+import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { saveEvent } from "@/lib/console/actions";
+import { APPLY_MODES as FORM_APPLY_MODES } from "@/lib/constants/editor";
 
 const TYPES = [
   { value: "govt-jobs", label: "Govt Jobs" },
@@ -21,13 +23,6 @@ const STATUSES = [
   { value: "draft", label: "Draft" },
   { value: "published", label: "Published" },
   { value: "unpublished", label: "Unpublished" },
-];
-
-const APPLY_MODES = [
-  { value: "online", label: "Online" },
-  { value: "offline", label: "Offline" },
-  { value: "hybrid", label: "Hybrid" },
-  { value: "na", label: "N/A" },
 ];
 
 interface EventData {
@@ -60,9 +55,18 @@ function toDateInput(s?: string | null): string {
   return s.slice(0, 10);
 }
 
-export function EventCoreForm({ event }: { event?: EventData }) {
+export async function EventCoreForm({ event }: { event?: EventData }) {
   const isEdit = Boolean(event?.id);
   const tagsStr = (event?.tags ?? []).join(", ");
+
+  // Fetch orgs for the org selector
+  const supabase = await createClient();
+  const { data: orgs } = await supabase
+    .from("orgs")
+    .select("id, slug, name")
+    .eq("status", "published")
+    .is("deleted_at", null)
+    .order("name");
 
   return (
     <form action={saveEvent} className="space-y-6">
@@ -139,17 +143,30 @@ export function EventCoreForm({ event }: { event?: EventData }) {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="conducting_body">Conducting Body</Label>
-            <Input id="conducting_body" name="conducting_body" defaultValue={event?.conducting_body ?? ""} placeholder="e.g. Staff Selection Commission" />
+            <Label htmlFor="conducting_body">Conducting Body (Org)</Label>
+            <select
+              id="conducting_body"
+              name="conducting_body"
+              defaultValue={event?.conducting_body ?? ""}
+              className="flex h-10 w-full rounded-md border border-line bg-white px-3 text-sm"
+            >
+              <option value="">— Select Org —</option>
+              {orgs?.map((org) => (
+                <option key={org.id} value={org.name}>{org.name}</option>
+              ))}
+            </select>
+            {event?.conducting_body && !orgs?.some(o => o.name === event.conducting_body) && (
+              <p className="text-xs text-muted-soft">Current: {event.conducting_body} (not in orgs table)</p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="conducting_body_slug">Conducting Body Slug</Label>
-            <Input id="conducting_body_slug" name="conducting_body_slug" defaultValue={event?.conducting_body_slug ?? ""} placeholder="e.g. ssc" />
+            <Input id="conducting_body_slug" name="conducting_body_slug" defaultValue={event?.conducting_body_slug ?? ""} placeholder="auto-filled from org" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="apply_mode">Apply Mode</Label>
             <select id="apply_mode" name="apply_mode" defaultValue={event?.apply_mode ?? "na"} className="flex h-10 w-full rounded-md border border-line bg-white px-3 text-sm">
-              {APPLY_MODES.map((m) => (
+              {FORM_APPLY_MODES.map((m) => (
                 <option key={m.value} value={m.value}>{m.label}</option>
               ))}
             </select>
