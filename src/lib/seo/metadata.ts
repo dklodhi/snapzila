@@ -66,7 +66,7 @@ export function typeListingMetadata(type: string, label: string): Metadata {
   return buildMetadata({
     title: label,
     description: `Latest ${label} across India. Apply online with real-time updates, eligibility, important dates, and live notifications.`,
-    path: `/opportunities/${type}`,
+    path: `/${type}`,
   });
 }
 
@@ -74,7 +74,7 @@ export function eventMetadata(event: {
   title: string; summary?: string | null; conducting_body?: string | null;
   type: string; slug: string; meta_title?: string | null; meta_description?: string | null;
 }): Metadata {
-  const path = `/opportunities/${event.type}/${event.slug}`;
+  const path = `/${event.type}/${event.slug}`;
   const title = event.meta_title || event.title;
   const description = event.meta_description || event.summary || `${event.title}${event.conducting_body ? ` — ${event.conducting_body}` : ""}`;
   return buildMetadata({ title, description, path, ogType: "article" });

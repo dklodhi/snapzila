@@ -35,7 +35,7 @@ interface EventCardData {
 }
 
 export function EventCard({ event }: { event: EventCardData }) {
-  const href = `/opportunities/${event.type}/${event.slug}`;
+  const href = `/${event.type}/${event.slug}`;
 
   const daysLeft = event.apply_end_date
     ? Math.ceil((new Date(event.apply_end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))

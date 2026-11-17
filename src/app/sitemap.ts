@@ -11,17 +11,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     "",
     "/opportunities",
-    "/opportunities/govt-jobs",
-    "/opportunities/admissions",
-    "/opportunities/scholarships",
-    "/opportunities/govt-schemes",
-    "/opportunities/news",
-    "/opportunities/articles",
+    "/govt-jobs",
+    "/admissions",
+    "/scholarships",
+    "/govt-schemes",
+    "/news",
+    "/articles",
     "/institutions",
     "/helpline",
     "/contact",
-    "/tools/exam-calendar",
-    "/tools/employment-news",
+    "/exam-calendar",
+    "/employment-news",
     "/login",
     "/signup",
   ];
@@ -51,7 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .limit(500);
 
   for (const event of events ?? []) {
-    const path = `/opportunities/${event.type}/${event.slug}`;
+    const path = `/${event.type}/${event.slug}`;
     entries.push({
       url: `${BASE_URL}${path}`,
       lastModified: new Date(event.updated_at),

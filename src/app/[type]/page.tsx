@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PublicShell } from "@/components/public/public-shell";
 import { EventCard } from "@/components/public/event-card";
 import { Card, CardContent } from "@/components/ui/card";
+import { typeListingMetadata } from "@/lib/seo/metadata";
 
 const TYPE_INFO: Record<string, { label: string; desc: string }> = {
   "govt-jobs": { label: "Govt Jobs", desc: "SSC, UPSC, IBPS, Railway, Police, PSU" },
@@ -13,13 +15,19 @@ const TYPE_INFO: Record<string, { label: string; desc: string }> = {
   articles: { label: "Articles", desc: "Guides, how-tos, analysis" },
 };
 
+export async function generateMetadata({ params }: { params: Promise<{ type: string }> }): Promise<Metadata> {
+  const { type } = await params;
+  const info = TYPE_INFO[type];
+  if (!info) return {};
+  return typeListingMetadata(type, info.label);
+}
+
 export default async function TypeListingPage({
   params,
 }: {
   params: Promise<{ type: string }>;
 }) {
   const { type } = await params;
-
   if (!TYPE_INFO[type]) notFound();
 
   const info = TYPE_INFO[type];
@@ -40,7 +48,6 @@ export default async function TypeListingPage({
       <div className="container-app py-8">
         <h1 className="font-display text-3xl font-bold text-ink">{info.label}</h1>
         <p className="mt-1 text-muted">{info.desc}</p>
-
         <div className="mt-6">
           {events && events.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

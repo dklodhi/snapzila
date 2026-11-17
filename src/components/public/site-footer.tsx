@@ -10,19 +10,19 @@ export function SiteFooter() {
     {
       title: "Opportunities",
       links: [
-        { href: "/opportunities/govt-jobs", label: "Govt Jobs" },
-        { href: "/opportunities/admissions", label: "Admissions" },
-        { href: "/opportunities/scholarships", label: "Scholarships" },
-        { href: "/opportunities/govt-schemes", label: "Govt Schemes" },
-        { href: "/opportunities/news", label: "News" },
-        { href: "/opportunities/articles", label: "Articles" },
+        { href: "/govt-jobs", label: "Govt Jobs" },
+        { href: "/admissions", label: "Admissions" },
+        { href: "/scholarships", label: "Scholarships" },
+        { href: "/govt-schemes", label: "Govt Schemes" },
+        { href: "/news", label: "News" },
+        { href: "/articles", label: "Articles" },
       ],
     },
     {
       title: "Tools",
       links: [
-        { href: "/tools/exam-calendar", label: "Exam Calendar" },
-        { href: "/tools/employment-news", label: "Employment News" },
+        { href: "/exam-calendar", label: "Exam Calendar" },
+        { href: "/employment-news", label: "Employment News" },
         { href: "/helpline", label: "Helpline" },
       ],
     },

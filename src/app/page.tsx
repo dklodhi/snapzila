@@ -43,7 +43,7 @@ export default async function HomePage() {
           <div className="mt-6 flex items-center justify-center gap-2">
             {TYPES.map((t) => (
               <Button key={t.slug} asChild variant="secondary" size="sm">
-                <Link href={`/opportunities/${t.slug}`}>{t.label}</Link>
+                <Link href={`/${t.slug}`}>{t.label}</Link>
               </Button>
             ))}
           </div>

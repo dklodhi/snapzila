@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -49,16 +50,16 @@ export const metadata: Metadata = {
     title: "SnapZila — Live updates for career & education opportunities",
     description: "Govt Jobs, Admissions, Scholarships, Exams — with real-time live updates.",
   },
-  verification: {
-    google: process.env.GOOGLE_SEARCH_CONSOLE_VERIFICATION || undefined,
-  },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const headerList = await headers();
+  const locale = headerList.get("x-locale") || "en-IN";
+
   return (
-    <html lang="en-IN">
+    <html lang={locale}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/icon.png" />
@@ -71,6 +72,7 @@ export default function RootLayout({
               name: "SnapZila",
               url: "https://snapzila.com",
               description: "Data Driven Event Centric Live Update System for Career & Education.",
+              inLanguage: locale,
               potentialAction: {
                 "@type": "SearchAction",
                 target: "https://snapzila.com/search?q={search_term_string}",

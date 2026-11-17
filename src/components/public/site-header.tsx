@@ -5,13 +5,14 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, getTeamMember } from "@/lib/auth/server";
+import { LanguageSwitcher } from "@/components/public/language-switcher";
 
 const NAV = [
   { href: "/opportunities", label: "Opportunities" },
-  { href: "/opportunities/govt-jobs", label: "Govt Jobs" },
-  { href: "/opportunities/admissions", label: "Admissions" },
-  { href: "/opportunities/scholarships", label: "Scholarships" },
-  { href: "/opportunities/news", label: "News" },
+  { href: "/govt-jobs", label: "Govt Jobs" },
+  { href: "/admissions", label: "Admissions" },
+  { href: "/scholarships", label: "Scholarships" },
+  { href: "/news", label: "News" },
 ];
 
 export async function SiteHeader() {
@@ -40,6 +41,7 @@ export async function SiteHeader() {
         </div>
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           {user ? (
             <>
               <Button asChild variant="ghost" size="sm">
